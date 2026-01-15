@@ -1,0 +1,179 @@
+"use client"
+
+import type React from "react"
+
+import Link from "next/link"
+import { Search, Menu, Heart, User, ShoppingBag, Settings, LogOut } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { CartSheet } from "@/components/cart-sheet"
+import { useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
+import { SidebarTrigger } from "@/components/ui/sidebar"
+import useAuth from "@/hooks/use-auth"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { logout } from "@/services/auth.service"
+import { useMutation } from "@tanstack/react-query"
+import { queryClient } from "@/components/QueryClientProviders"
+import { toast } from "sonner"
+
+export function Header() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const router = useRouter()
+  const pathname = usePathname()
+  const { isAuthenticated, user } = useAuth()
+  console.log(isAuthenticated, user);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`)
+    }
+  }
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await logout()
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ["currentUser"] })
+      toast.success("Đăng xuất thành công")
+      if (user?.role === "admin") {
+        router.push("/")
+      }
+    },
+    onError: () => {
+      toast.error("Đăng xuất thất bại. Vui lòng thử lại.")
+    },
+  })
+
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync();
+    } catch (error) {
+      console.error("Đăng xuất thất bại:", error)
+    }
+  }
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      {/* <div className="bg-orange-600 text-primary-foreground py-2 text-center text-sm font-medium">
+        Miễn phí vận chuyển cho đơn hàng trên 200.000đ 🎉
+      </div> */}
+
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Link href="/" className="items-center gap-2 hidden md:flex">
+            <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-primary-foreground font-bold text-lg">
+              🍿
+            </div>
+            <span className="font-bold text-xl hidden sm:inline-block text-balance">Snack Việt</span>
+          </Link>
+
+          <SidebarTrigger className="md:hidden">
+            <Menu className="h-5 w-5" />
+          </SidebarTrigger>
+
+          <form onSubmit={handleSearch} className="flex-1 max-w-md hidden md:flex">
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Tìm kiếm snack yêu thích..."
+                className="pl-10 bg-muted/50"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </form>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="hidden md:flex">
+              <Heart className="h-5 w-5" />
+            </Button>
+            {
+              isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.fullName || "User"} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user?.fullName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/account" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Tài khoản của tôi</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/orders" className="cursor-pointer">
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        <span>Đơn hàng</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/wishlist" className="cursor-pointer">
+                        <Heart className="mr-2 h-4 w-4" />
+                        <span>Danh sách yêu thích</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/account" className="cursor-pointer">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Cài đặt</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Đăng xuất</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) :
+                <Button variant="ghost" size="icon" asChild className="hidden md:flex">
+                  <Link href="/login">
+                    <User className="h-5 w-5" />
+                  </Link>
+                </Button>
+            }
+            <CartSheet />
+          </div>
+        </div>
+
+        {/* Existing code */}
+        <nav className="hidden md:flex h-12 items-center gap-15 text-sm font-medium">
+          <Link href="/" className={`${pathname === "/" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+            Trang chủ
+          </Link>
+          <Link href="/products" className={`${pathname === "/products" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+            Sản phẩm
+          </Link>
+          <Link href="/categories" className={`${pathname === "/categories" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+            Danh mục
+          </Link>
+          <Link href="/promotions" className={`${pathname === "/promotions" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+            Khuyến mãi
+          </Link>
+          <Link href="/about" className={`${pathname === "/about" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+            Về chúng tôi
+          </Link>
+        </nav>
+      </div>
+    </header >
+  )
+}
