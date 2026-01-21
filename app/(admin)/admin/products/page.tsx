@@ -5,79 +5,43 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, Plus, MoreVertical, Pencil, Trash2, Eye } from "lucide-react"
+import { Search, Plus, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import PaginationControls from "@/components/layout/pagination-controls"
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { getAllProductsAdmin, updateProductStatus } from "@/services/product.service"
+import { formatPrice } from "@/lib/utils"
+import useDebounce from "@/hooks/use-debounce"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { queryClient } from "@/components/QueryClientProviders"
+import { PaginatedData } from "@/types/commons"
+import { ProductAdmin } from "@/types/product"
+import { Dialog } from "@/components/ui/dialog"
+import DeleteProduct from "@/components/forms/product/delete-product"
 
-const products = [
-    {
-        id: 1,
-        name: "Bánh Snack Oishi Vị Bò Nướng",
-        category: "Snack mặn",
-        price: 25000,
-        stock: 500,
-        sold: 234,
-        status: "active",
-        image: "/vietnamese-oishi-beef-snack-package.jpg",
-    },
-    {
-        id: 2,
-        name: "Kẹo Alpenliebe Caramel",
-        category: "Bánh kẹo",
-        price: 35000,
-        stock: 320,
-        sold: 198,
-        status: "active",
-        image: "/alpenliebe-caramel-candy-bag.jpg",
-    },
-    {
-        id: 3,
-        name: "Hạt điều rang muối",
-        category: "Hạt dinh dưỡng",
-        price: 85000,
-        stock: 150,
-        sold: 145,
-        status: "active",
-        image: "/premium-roasted-cashew-nuts-package.jpg",
-    },
-    {
-        id: 4,
-        name: "Snack Lay's Kem Chua",
-        category: "Snack mặn",
-        price: 28000,
-        stock: 0,
-        sold: 189,
-        status: "out_of_stock",
-        image: "/lays-sour-cream-onion-chips.jpg",
-    },
-    {
-        id: 5,
-        name: "Kẹo dẻo Haribo",
-        category: "Bánh kẹo",
-        price: 45000,
-        stock: 280,
-        sold: 167,
-        status: "active",
-        image: "/haribo-tropical-gummy-bears.jpg",
-    },
-]
 
 export default function ProductsPage() {
+    const [search, setSearch] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
+    const q = useDebounce(search, 500)
+    const {
+        data: productsData,
+    } = useQuery({
+        queryKey: ['admin-products', currentPage, itemsPerPage, q],
+        queryFn: () => getAllProductsAdmin(currentPage, itemsPerPage, q),
+    })
     //
-    const totalPages = Math.ceil(products.length / itemsPerPage)
+    const totalPages = productsData?.totalPages || 1
+    const totalItems = productsData?.totalItems || 0
+    const products = productsData?.data || []
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(price)
-    }
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [deletingProduct, setDeletingProduct] = useState<ProductAdmin | null>(null)
 
-    const getStatusBadge = (status: string, stock: number) => {
-        if (status === "out_of_stock" || stock === 0) {
+    const getStatusBadge = (stock: number) => {
+        if (stock === 0) {
             return <Badge variant="destructive">Hết hàng</Badge>
         }
         if (stock < 50) {
@@ -86,6 +50,42 @@ export default function ProductsPage() {
         return <Badge className="bg-green-500">Còn hàng</Badge>
     }
 
+    const onChangeStatus = async (product: ProductAdmin) => {
+        const previousData = queryClient.getQueryData<
+            PaginatedData<ProductAdmin>
+        >(['admin-products', currentPage, itemsPerPage, q])
+
+        try {
+            queryClient.setQueryData(
+                ['admin-products', currentPage, itemsPerPage, q],
+                (oldData: PaginatedData<ProductAdmin> | undefined) => {
+                    if (!oldData) return oldData
+
+                    return {
+                        ...oldData,
+                        data: oldData.data.map((p) =>
+                            p._id === product._id
+                                ? { ...p, isActive: !p.isActive }
+                                : p
+                        ),
+                    }
+                }
+            )
+
+            await updateProductStatus(product._id)
+        } catch (error) {
+            queryClient.setQueryData(
+                ['admin-products', currentPage, itemsPerPage, q],
+                previousData
+            )
+            console.error("Lỗi cập nhật trạng thái sản phẩm:", error)
+        }
+    }
+
+    const handleDeleteProduct = (product: ProductAdmin) => {
+        setDeletingProduct(product);
+        setDeleteDialogOpen(true);
+    }
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -106,7 +106,7 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-4 mb-6">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="Tìm kiếm sản phẩm..." className="pl-10" />
+                            <Input placeholder="Tìm kiếm sản phẩm..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
                         </div>
                         <Button variant="outline" className="bg-transparent">
                             Lọc
@@ -114,26 +114,27 @@ export default function ProductsPage() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b">
-                                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Sản phẩm</th>
-                                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Danh mục</th>
-                                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Giá</th>
-                                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Tồn kho</th>
-                                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Đã bán</th>
-                                    <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Trạng thái</th>
-                                    <th className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <Table className="w-full">
+                            <TableHeader>
+                                <TableRow className="border-b">
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Sản phẩm</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Danh mục</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Giá</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Tồn kho</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Đã bán</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Trạng thái</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Hiển thị</TableHead>
+                                    <TableHead className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Thao tác</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
                                 {products.map((product) => (
-                                    <tr key={product.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                                        <td className="py-3 px-2">
+                                    <TableRow key={product._id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                                        <TableCell className="py-3 px-2">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                                                     <img
-                                                        src={product.image || "/placeholder.svg"}
+                                                        src={product?.images?.[0]?.url || "/placeholder.svg"}
                                                         alt={product.name}
                                                         className="w-full h-full object-cover"
                                                     />
@@ -142,13 +143,20 @@ export default function ProductsPage() {
                                                     <p className="font-medium line-clamp-1">{product.name}</p>
                                                 </div>
                                             </div>
-                                        </td>
-                                        <td className="py-3 px-2 text-sm">{product.category}</td>
-                                        <td className="py-3 px-2 font-medium">{formatPrice(product.price)}</td>
-                                        <td className="py-3 px-2 text-sm">{product.stock}</td>
-                                        <td className="py-3 px-2 text-sm">{product.sold}</td>
-                                        <td className="py-3 px-2">{getStatusBadge(product.status, product.stock)}</td>
-                                        <td className="py-3 px-2 text-right">
+                                        </TableCell>
+                                        <TableCell className="py-3 px-2 text-sm">{product.category?.name}</TableCell>
+                                        <TableCell className="py-3 px-2 font-medium">{formatPrice(product.price)}</TableCell>
+                                        <TableCell className="py-3 px-2 text-sm">{product.stock}</TableCell>
+                                        <TableCell className="py-3 px-2 text-sm">{product.soldQuantity}</TableCell>
+                                        <TableCell className="py-3 px-2">{getStatusBadge(product.stock)}</TableCell>
+                                        <TableCell className="py-3 px-2">
+                                            {product.isActive ? (
+                                                <Badge className="bg-green-500">Đang hiển thị</Badge>
+                                            ) : (
+                                                <Badge className="bg-red-500">Đã ẩn</Badge>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="py-3 px-2 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon">
@@ -157,29 +165,44 @@ export default function ProductsPage() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem>
-                                                        <Eye className="h-4 w-4 mr-2" />
-                                                        Xem chi tiết
+                                                        <Link href={`/admin/products/${product._id}`} className="flex gap-2 items-center">
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            Xem sản phẩm
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => onChangeStatus(product)}>
+                                                        <EyeOff className="h-4 w-4 mr-2" />
+                                                        {
+                                                            product.isActive ? "Ẩn sản phẩm" : "Hiển thị sản phẩm"
+                                                        }
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem>
-                                                        <Pencil className="h-4 w-4 mr-2" />
-                                                        Chỉnh sửa
+                                                        <Link href={`/admin/products/edit/${product._id}`} className="flex gap-2 items-center">
+                                                            <Pencil className="h-4 w-4 mr-2" />
+                                                            Chỉnh sửa
+                                                        </Link>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem className="text-destructive">
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleDeleteProduct(product)}
+                                                        className="text-destructive">
                                                         <Trash2 className="h-4 w-4 mr-2" />
                                                         Xóa
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 ))}
-                            </tbody>
-                        </table>
+                            </TableBody>
+                        </Table>
                     </div>
 
                 </CardContent>
             </Card>
-            <PaginationControls totalPages={totalPages} currentPage={currentPage} itemsPerPage={itemsPerPage} setCurrentPage={setCurrentPage} setItemsPerPage={setItemsPerPage} totalItems={products.length} />
+            <PaginationControls totalPages={totalPages} currentPage={currentPage} itemsPerPage={itemsPerPage} setCurrentPage={setCurrentPage} setItemsPerPage={setItemsPerPage} totalItems={totalItems} />
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DeleteProduct setDeleteDialogOpen={setDeleteDialogOpen} selectedProduct={deletingProduct!} />
+            </Dialog>
         </div>
     )
 }

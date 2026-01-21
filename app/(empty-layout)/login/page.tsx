@@ -16,10 +16,11 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { googleLogin, login } from "@/services/auth.service"
 import { useRouter } from "next/navigation"
-import { useMutation } from "@tanstack/react-query"
-import { queryClient } from "@/components/QueryClientProviders"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/store/store"
 
 export default function LoginPage() {
+  const dispatch = useDispatch<AppDispatch>();
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const {
@@ -36,21 +37,12 @@ export default function LoginPage() {
     },
   })
 
-  const loginMutation = useMutation({
-    mutationFn: ({ email, password }: { email: string, password: string }) => login(email, password),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
-      toast.success("Đăng nhập thành công!")
-    },
-    onError: (error) => {
-      console.error("Đăng nhập thất bại:", error);
-      toast.error("Đăng nhập thất bại. Vui lòng thử lại.")
-    },
-  });
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await loginMutation.mutateAsync({ email: data.email, password: data.password });
+      const response = await login(data.email, data.password);
+      dispatch({ type: 'auth/loginSuccess', payload: { user: response.data } });
+      toast.success("Đăng nhập thành công")
       router.push("/")
     } catch (error) {
       toast.error("Đăng nhập thất bại. Vui lòng thử lại.")

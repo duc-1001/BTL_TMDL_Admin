@@ -1,5 +1,16 @@
 import { logout, refreshAccessToken } from "@/services/auth.service";
+import { fetchLogout } from "@/store/slices/authSlice";
+import { RootState } from "@/store/store";
 import axios, { AxiosError } from "axios";
+
+let store: {
+    dispatch: (action: any) => void;
+} = {
+    dispatch: (_action: any) => {},
+};
+export const injectStore = (_store: { dispatch: (action: any) => void }) => {
+    store = _store;
+};
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL + "/api" || "http://localhost:8000/api",
@@ -41,7 +52,7 @@ api.interceptors.response.use(
     }
 
     if (url.includes("/auth/refresh-token")) {
-      await logout();
+      store.dispatch(fetchLogout());
       return Promise.reject(error);
     }
 

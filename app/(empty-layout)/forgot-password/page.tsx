@@ -9,16 +9,26 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { Mail, ArrowLeft } from "lucide-react"
+import { forgotPassword } from "@/services/auth.service"
+import { set } from "zod"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [messageError, setMessageError] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle forgot password logic here
-    console.log("[v0] Password reset request for:", email)
-    setIsSubmitted(true)
+    setIsSubmitting(true)
+    try {
+      await forgotPassword(email)
+      setIsSubmitted(true)
+    } catch (error:any) {
+      setMessageError(error.message || "Đã có lỗi xảy ra. Vui lòng thử lại.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (isSubmitted) {
@@ -57,6 +67,11 @@ export default function ForgotPasswordPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {messageError && (
+              <div className="p-3 text-sm text-red-700 bg-red-100 rounded-md">
+                {messageError}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
@@ -73,7 +88,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" size="lg">
+            <Button disabled={isSubmitting} type="submit" className="w-full" size="lg">
               Gửi liên kết đặt lại mật khẩu
             </Button>
           </form>

@@ -10,20 +10,22 @@ import { CartSheet } from "@/components/cart-sheet"
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import useAuth from "@/hooks/use-auth"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { logout } from "@/services/auth.service"
 import { useMutation } from "@tanstack/react-query"
 import { queryClient } from "@/components/QueryClientProviders"
 import { toast } from "sonner"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/store/store"
+import { fetchLogout } from "@/store/slices/authSlice"
 
 export function Header() {
+  const dispatch = useDispatch<AppDispatch>()
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, user } = useAuth()
-  console.log(isAuthenticated, user);
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,25 +34,9 @@ export function Header() {
     }
   }
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await logout()
-    },
-    onSuccess: () => {
-      queryClient.removeQueries({ queryKey: ["currentUser"] })
-      toast.success("Đăng xuất thành công")
-      if (user?.role === "admin") {
-        router.push("/")
-      }
-    },
-    onError: () => {
-      toast.error("Đăng xuất thất bại. Vui lòng thử lại.")
-    },
-  })
-
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      await logoutMutation.mutateAsync();
+      dispatch(fetchLogout())
     } catch (error) {
       console.error("Đăng xuất thất bại:", error)
     }
@@ -99,7 +85,7 @@ export function Header() {
                     <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.fullName || "User"} />
-                        <AvatarFallback className="bg-primary text-primary-foreground">
+                        <AvatarFallback className="bg-orange-400 text-primary-foreground">
                           {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
                         </AvatarFallback>
                       </Avatar>

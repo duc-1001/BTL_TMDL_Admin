@@ -21,4 +21,9 @@ export class ApiClient {
     const res = await api.delete(url, { data });
     return res.data;
   }
+
+  static async patch<T>(url: string, data?: any, config?: any): Promise<T> {
+    const res = await api.patch(url, data, config);
+    return res.data;
+  }
 }

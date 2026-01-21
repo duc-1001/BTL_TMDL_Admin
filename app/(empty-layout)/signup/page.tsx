@@ -47,7 +47,7 @@ export default function SignupPage() {
         data.name,
         data.email,
         data.password,
-        data.phone
+          // data.phone
       )
       setSubmissionMessage({
         type: 'success',
@@ -117,7 +117,7 @@ export default function SignupPage() {
             </div>
 
             {/* PHONE */}
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="phone">Số điện thoại</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -129,7 +129,7 @@ export default function SignupPage() {
                 />
               </div>
               {errors.phone && <p className="text-xs font-medium text-red-500">{errors.phone.message}</p>}
-            </div>
+            </div> */}
 
             {/* PASSWORD */}
             <div className="space-y-2">

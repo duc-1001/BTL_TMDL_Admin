@@ -37,7 +37,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
                         <SelectValue />
                     </SelectTrigger>
 
-                    <SelectContent >
+                    <SelectContent position="popper" sideOffset={4}>
                         {ITEMS_PER_PAGE_OPTIONS.map((option) => (
                             <SelectItem key={option} value={option.toString()}>
                                 {option}

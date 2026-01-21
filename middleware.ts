@@ -1,27 +1,37 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtDecode } from "jwt-decode";
 
-function parseJwt(token: string) {
-  try {
-    const base64Payload = token.split(".")[1];
-    const payload = atob(base64Payload);
-    return JSON.parse(payload);
-  } catch {
-    return null;
-  }
+interface JwtPayload {
+  user_id: string;
+  role: string;
+  exp: number;
+  type: "access" | "refresh";
 }
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("access_token")?.value;
-
+  const token = request.cookies.get("access_token")?.value;  
+  console.log(token);
+  
   if (request.nextUrl.pathname.startsWith("/admin")) {
     if (!token) {
       return redirectToLogin(request);
     }
 
-    const payload = parseJwt(token);
+    try {
+      const payload = jwtDecode<JwtPayload>(token);
+      console.log(payload);
+      
+      
+      // token hết hạn
+      if (payload.exp * 1000 < Date.now()) {
+        return redirectToLogin(request);
+      }
 
-    if (!payload || payload.role !== "admin") {
+      if (payload.role !== "admin") {
+        return redirectToLogin(request);
+      }
+    } catch {
       return redirectToLogin(request);
     }
   }

@@ -21,6 +21,9 @@ import {
   Tag,
   BarChart3,
   Megaphone,
+  FolderTree,
+  Slack,
+  Landmark,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
@@ -30,6 +33,8 @@ import { Button } from "@/components/ui/button"
 const navigation = [
   { name: "Tổng quan", href: "/admin", icon: LayoutDashboard },
   { name: "Sản phẩm", href: "/admin/products", icon: Package },
+  { name: "Danh mục", href: "/admin/categories", icon: FolderTree },
+  {name: "Thương hiệu", href: "/admin/brands", icon: Landmark },
   { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
   { name: "Khách hàng", href: "/admin/customers", icon: Users },
   { name: "Khuyến mãi", href: "/admin/promotions", icon: Tag },

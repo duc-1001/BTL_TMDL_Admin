@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { User, Package, Heart, MapPin, Settings, LogOut } from "lucide-react"
+import { User, Package, Heart, MapPin, Settings, LogOut, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -10,32 +10,104 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ChangePasswordForm, changePasswordSchema, EditInfoForm, editInfoSchema } from "@/schemas/auth.schema"
+import { useMutation } from "@tanstack/react-query"
+import { changeUserPassword, updateUserProfile } from "@/services/auth.service"
+import { queryClient } from "@/components/QueryClientProviders"
+import { toast } from "sonner"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/store/store"
+import { Dialog } from "@/components/ui/dialog"
+import AddNewAddress from "@/components/forms/user-address/add-new-address"
+import { fetchLogout } from "@/store/slices/authSlice"
+import { UserAddress } from "@/types/user_address"
+import EditUserAddress from "@/components/forms/user-address/edit-user-address"
+import DeleteUserAddress from "@/components/forms/user-address/delete-user-address"
+
 export default function AccountPage() {
-  const [user, setUser] = useState({
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@email.com",
-    phone: "0912345678",
-    avatar: "",
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [isEditingInfo, setIsEditingInfo] = useState(false)
+  const [isEditingPassword, setIsEditingPassword] = useState(false)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleteAddressId, setDeleteAddressId] = useState("")
+
+  const handleEditAddress = (address: UserAddress) => {
+    setSelectedAddress(address)
+    setIsEditDialogOpen(true)
+  }
+
+  const onSubmitEditInfo = async (data: EditInfoForm) => {
+    try {
+      const res = await updateUserProfile({ fullName: data.fullName, phoneNumber: data.phoneNumber })
+      dispatch({ type: 'auth/updateUserSuccess', payload: { user: res.data } });
+      setIsEditingInfo(false)
+      toast.success("Cập nhật thông tin thành công")
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+    } catch (error) {
+      console.error("Cập nhật thông tin thất bại:", error)
+    }
+  }
+
+  const onSubmitChangePassword = async (data: ChangePasswordForm) => {
+    try {
+      await changeUserPassword(data.currentPassword, data.newPassword)
+      setIsEditingPassword(false)
+      toast.success("Đổi mật khẩu thành công")
+      resetChangePassword()
+    } catch (error) {
+      console.error("Đổi mật khẩu thất bại:", error)
+    }
+  }
+
+  const {
+    setValue: setEditInfoValue,
+    register: registerEditInfo,
+    formState: { errors: editInfoErrors, isSubmitting: isEditInfoSubmitting },
+    handleSubmit: handleSubmitEditInfo,
+  } = useForm<EditInfoForm>({
+    resolver: zodResolver(editInfoSchema),
+    defaultValues: {
+      fullName: user?.fullName || "",
+      phoneNumber: user?.phoneNumber || "",
+    },
   })
 
-  const [addresses] = useState([
-    {
-      id: 1,
-      name: "Nhà riêng",
-      fullName: "Nguyễn Văn A",
-      phone: "0912345678",
-      address: "123 Đường ABC, Phường XYZ, Quận 1, TP.HCM",
-      isDefault: true,
+  const {
+    reset: resetChangePassword,
+    register: registerChangePassword,
+    formState: { errors: passwordErrors, isSubmitting: isChangePasswordSubmitting },
+    handleSubmit: handleSubmitChangePassword,
+  } = useForm<ChangePasswordForm>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
     },
-    {
-      id: 2,
-      name: "Văn phòng",
-      fullName: "Nguyễn Văn A",
-      phone: "0912345678",
-      address: "456 Đường DEF, Phường MNO, Quận 3, TP.HCM",
-      isDefault: false,
-    },
-  ])
+  })
+
+  const addresses = user?.addresses || []
+
+  useEffect(() => {
+    if (user) {
+      setEditInfoValue("fullName", user.fullName || "")
+      setEditInfoValue("phoneNumber", user.phoneNumber || "")
+    }
+  }, [user, resetChangePassword])
+
+  const handleLogout = () => {
+    try {
+      dispatch(fetchLogout())
+    } catch (error) {
+      console.error("Đăng xuất thất bại:", error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -46,13 +118,13 @@ export default function AccountPage() {
             <CardContent className="p-6">
               <div className="flex flex-col items-center text-center mb-6">
                 <Avatar className="h-20 w-20 mb-3">
-                  <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                  <AvatarImage src={user?.avatar || "/placeholder.svg"} />
                   <AvatarFallback className="bg-orange-600 text-primary-foreground text-2xl">
-                    {user.name.charAt(0)}
+                    {user?.fullName ? user.fullName.charAt(0) : ""}
                   </AvatarFallback>
                 </Avatar>
-                <h3 className="font-semibold text-lg">{user.name}</h3>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <h3 className="font-semibold text-lg">{user?.fullName}</h3>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
 
               <Separator className="my-4" />
@@ -79,7 +151,7 @@ export default function AccountPage() {
                   <Heart className="h-4 w-4" />
                   Sản phẩm yêu thích
                 </Link>
-                <Link
+                {/* <Link
                   href="/account"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
                 >
@@ -92,12 +164,12 @@ export default function AccountPage() {
                 >
                   <Settings className="h-4 w-4" />
                   Cài đặt
-                </Link>
+                </Link> */}
               </nav>
 
               <Separator className="my-4" />
 
-              <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50">
+              <Button onClick={handleLogout} variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50">
                 <LogOut className="h-4 w-4 mr-2" />
                 Đăng xuất
               </Button>
@@ -114,66 +186,89 @@ export default function AccountPage() {
 
               <TabsContent value="profile">
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Thông tin cá nhân</CardTitle>
-                    <CardDescription>Cập nhật thông tin tài khoản của bạn</CardDescription>
+                  <CardHeader className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Thông tin cá nhân</CardTitle>
+                      <CardDescription>Cập nhật thông tin tài khoản của bạn</CardDescription>
+                    </div>
+                    <div>
+                      <Edit onClick={() => setIsEditingInfo(true)} className="h-5 w-5 text-muted-foreground hover:text-black cursor-pointer" />
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid gap-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="name">Họ và tên</Label>
-                        <Input
-                          id="name"
-                          value={user.name}
-                          onChange={(e) => setUser({ ...user, name: e.target.value })}
-                        />
-                      </div>
+                    <form className="space-y-6" onSubmit={handleSubmitEditInfo(onSubmitEditInfo)}>
+                      <div className="grid gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="name">Họ và tên</Label>
+                          <Input
+                            id="name"
+                            {...registerEditInfo("fullName")}
+                            disabled={!isEditingInfo}
+                          />
+                          {editInfoErrors.fullName && <p className="text-xs font-medium text-red-500 mt-1">{editInfoErrors.fullName.message}</p>}
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="email">Email</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={user?.email}
+                            disabled
+                          />
+                        </div>
 
-                      <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={user.email}
-                          onChange={(e) => setUser({ ...user, email: e.target.value })}
-                        />
+                        <div className="grid gap-2">
+                          <Label htmlFor="phone">Số điện thoại</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            {...registerEditInfo("phoneNumber")}
+                            disabled={!isEditingInfo}
+                          />
+                          {editInfoErrors.phoneNumber && <p className="text-xs font-medium text-red-500 mt-1">{editInfoErrors.phoneNumber.message}</p>}
+                        </div>
                       </div>
-
-                      <div className="grid gap-2">
-                        <Label htmlFor="phone">Số điện thoại</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={user.phone}
-                          onChange={(e) => setUser({ ...user, phone: e.target.value })}
-                        />
-                      </div>
-                    </div>
+                      {isEditingInfo && (
+                        <div className="flex justify-end gap-3">
+                          <Button type="button" variant="outline" onClick={() => setIsEditingInfo(false)}>Hủy</Button>
+                          <Button className="cursor-pointer" disabled={isEditInfoSubmitting}>Lưu thay đổi</Button>
+                        </div>
+                      )}
+                    </form>
 
                     <Separator />
 
-                    <div>
-                      <h4 className="font-semibold mb-3">Đổi mật khẩu</h4>
+                    <form className="space-y-6" onSubmit={handleSubmitChangePassword(onSubmitChangePassword)}>
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold mb-3">Đổi mật khẩu</h4>
+                        <Edit onClick={() => setIsEditingPassword(true)} className="h-5 w-5 text-muted-foreground hover:text-black cursor-pointer" />
+                      </div>
                       <div className="grid gap-4">
                         <div className="grid gap-2">
                           <Label htmlFor="current-password">Mật khẩu hiện tại</Label>
-                          <Input id="current-password" type="password" />
+                          <Input id="current-password" type="password" disabled={!isEditingPassword} {...registerChangePassword("currentPassword")} />
+                          {passwordErrors.currentPassword && <p className="text-xs font-medium text-red-500 mt-1">{passwordErrors.currentPassword.message}</p>}
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="new-password">Mật khẩu mới</Label>
-                          <Input id="new-password" type="password" />
+                          <Input id="new-password" type="password" disabled={!isEditingPassword} {...registerChangePassword("newPassword")} />
+                          {passwordErrors.newPassword && <p className="text-xs font-medium text-red-500 mt-1">{passwordErrors.newPassword.message}</p>}
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="confirm-password">Xác nhận mật khẩu mới</Label>
-                          <Input id="confirm-password" type="password" />
+                          <Input id="confirm-password" type="password" disabled={!isEditingPassword} {...registerChangePassword("confirmNewPassword")} />
+                          {passwordErrors.confirmNewPassword && <p className="text-xs font-medium text-red-500 mt-1">{passwordErrors.confirmNewPassword.message}</p>}
                         </div>
                       </div>
-                    </div>
+                      {
+                        isEditingPassword &&
+                        <div className="flex justify-end gap-3">
+                          <Button type="button" variant="outline" onClick={() => setIsEditingPassword(false)}>Hủy</Button>
+                          <Button className="cursor-pointer" disabled={isChangePasswordSubmitting}>Lưu mật khẩu</Button>
+                        </div>
+                      }
+                    </form>
 
-                    <div className="flex justify-end gap-3">
-                      <Button variant="outline">Hủy</Button>
-                      <Button>Lưu thay đổi</Button>
-                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -186,17 +281,17 @@ export default function AccountPage() {
                         <CardTitle>Địa chỉ giao hàng</CardTitle>
                         <CardDescription>Quản lý địa chỉ nhận hàng của bạn</CardDescription>
                       </div>
-                      <Button>Thêm địa chỉ mới</Button>
+                      <Button onClick={() => setIsAddDialogOpen(true)}>Thêm địa chỉ mới</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {addresses.map((address) => (
-                      <Card key={address.id} className="overflow-hidden">
+                      <Card key={address._id} className="overflow-hidden">
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <h4 className="font-semibold">{address.name}</h4>
+                                <h4 className="font-semibold">{address?.name}</h4>
                                 {address.isDefault && (
                                   <span className="text-xs px-2 py-0.5 rounded-full bg-orange-600/10 text-primary font-medium">
                                     Mặc định
@@ -204,20 +299,22 @@ export default function AccountPage() {
                                 )}
                               </div>
                               <p className="text-sm">
-                                {address.fullName} | {address.phone}
+                                {address?.receiver} | {address?.phone}
                               </p>
-                              <p className="text-sm text-muted-foreground">{address.address}</p>
+                              <p className="text-sm text-muted-foreground">{address?.street + ", " + address?.ward.name + ", " + address?.province.name}</p>
                             </div>
-                            <div className="flex gap-2">
-                              <Button variant="outline" size="sm">
-                                Sửa
-                              </Button>
-                              {!address.isDefault && (
-                                <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600">
-                                  Xóa
+                            {
+                              <div className="flex gap-2">
+                                <Button onClick={() => { handleEditAddress(address) }} variant="outline" size="sm">
+                                  Sửa
                                 </Button>
-                              )}
-                            </div>
+                                {!address.isDefault && (
+                                  <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={() => { setDeleteAddressId(address._id); setIsDeleteDialogOpen(true); }}>
+                                    Xóa
+                                  </Button>
+                                )}
+                              </div>
+                            }
                           </div>
                         </CardContent>
                       </Card>
@@ -227,6 +324,15 @@ export default function AccountPage() {
               </TabsContent>
             </Tabs>
           </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <AddNewAddress setIsAddDialogOpen={setIsAddDialogOpen} />
+          </Dialog>
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <EditUserAddress selectedAddress={selectedAddress!} setIsEditDialogOpen={setIsEditDialogOpen} />
+          </Dialog>
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DeleteUserAddress setIsDeleteDialogOpen={setIsDeleteDialogOpen} deleteAddressId={deleteAddressId} />
+          </Dialog>
         </div>
       </div>
     </div>
