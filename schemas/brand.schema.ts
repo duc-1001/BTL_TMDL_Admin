@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"]
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB (tuỳ bạn)
 
 export const brandSchema = z.object({
@@ -17,7 +17,7 @@ export const brandSchema = z.object({
         if (!file || typeof file === "string") return true
         return ACCEPTED_IMAGE_TYPES.includes(file.type)
       },
-      { message: "Logo chỉ chấp nhận file PNG hoặc JPG" }
+      { message: "Logo chỉ chấp nhận file PNG, JPG hoặc WEBP" }
     )
     .refine(
       (file) => {

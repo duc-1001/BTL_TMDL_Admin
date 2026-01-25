@@ -25,8 +25,8 @@ import { createProduct } from "@/services/product.service"
 import { queryClient } from "@/components/QueryClientProviders"
 import { toast } from "sonner"
 
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"]
-const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB (tuỳ bạn)
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB (tuỳ bạn)
 
 const allergenOptions = [
   "Đậu phộng",
@@ -112,6 +112,7 @@ export default function NewProductPage() {
       router.push('/admin/products');
     },
     onError: (error: any) => {
+      toast.error(error.message || "Lỗi khi tạo sản phẩm");
       console.error("Lỗi khi tạo sản phẩm:", error.message || error);
     }
   })
@@ -137,32 +138,45 @@ export default function NewProductPage() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files) {
-      const newImages = Array.from(files)
-      console.log(newImages);
+    if (!files) return
 
-      newImages.forEach((file) => {
-        if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-          setError("images", { type: "manual", message: "Ảnh chỉ chấp nhận file PNG hoặc JPG" })
-          e.target.value = "" // reset value to allow re-upload the same file
-          return
-        }
-        if (file.size > MAX_FILE_SIZE) {
-          setError("images", { type: "manual", message: "Dung lượng ảnh tối đa 2MB" })
-          e.target.value = "" // reset value to allow re-upload the same file
-          return
-        }
-      })
-      clearErrors("images")
+    const newImages = Array.from(files)
+    let hasError = false
 
-      setValue("images", [...images, ...newImages], {
-        shouldValidate: true,
-      })
+    for (const file of newImages) {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        setError("images", {
+          type: "manual",
+          message: "Ảnh chỉ chấp nhận file PNG, JPG hoặc WEBP",
+        })
+        hasError = true
+        break
+      }
 
-      e.target.value = ""
-
+      if (file.size > MAX_FILE_SIZE) {
+        setError("images", {
+          type: "manual",
+          message: "Dung lượng ảnh tối đa 2MB",
+        })
+        hasError = true
+        break
+      }
     }
+
+    if (hasError) {
+      e.target.value = ""
+      return 
+    }
+
+    clearErrors("images")
+
+    setValue("images", [...images, ...newImages], {
+      shouldValidate: true,
+    })
+
+    e.target.value = ""
   }
+
 
   const removeImage = (index: number) => {
     const updatedImages = images.filter((_, i) => i !== index)
@@ -393,7 +407,7 @@ export default function NewProductPage() {
                       ))}
                       <label className={`border-2 border-dashed rounded-lg p-8 text-center flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-accent hover:text-accent-foreground`}>
                         <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-4">Kéo thả hoặc click để tải hình ảnh lên</p>
+                        <p className="text-sm text-muted-foreground mb-4 hidden xl:block">Kéo thả hoặc click để tải hình ảnh lên</p>
                         <Input hidden type="file" accept="image/*" multiple onChange={handleImageUpload} className="max-w-xs mx-auto" />
                       </label>
                     </div>
@@ -575,6 +589,8 @@ export default function NewProductPage() {
                             <SelectContent>
                               <SelectItem value="g">g</SelectItem>
                               <SelectItem value="kg">kg</SelectItem>
+                              <SelectItem value="ml">ml</SelectItem>
+                              <SelectItem value="l">l</SelectItem>
                             </SelectContent>
                           </Select>
                         )}

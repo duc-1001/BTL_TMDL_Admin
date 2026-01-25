@@ -39,7 +39,7 @@ const EditCategory = ({ setIsEditDialogOpen, categories, selectedCategory }: Edi
             isActive: selectedCategory.isActive,
             isFeatured: selectedCategory.isFeatured,
             order: selectedCategory.order,
-            image: selectedCategory.image || null,
+            image: selectedCategory.image || undefined,
         },
     })
     const editCategoryMutation = useMutation({
@@ -57,8 +57,11 @@ const EditCategory = ({ setIsEditDialogOpen, categories, selectedCategory }: Edi
     const onSubmit = async (data: CategoryForm) => {
         const payload = {
             ...data,
+            image: data.image ?? "",
             parent: data.parent === "none" ? null : data.parent
         };
+        console.log(payload);
+
         try {
             await editCategoryMutation.mutateAsync({ id: selectedCategory._id, payload });
         } catch (error) {

@@ -44,6 +44,7 @@ import EditCategory from "@/components/forms/category/edit-category"
 import { AlertDialog } from "@/components/ui/alert-dialog"
 import DeleteCategory from "@/components/forms/category/delete-category"
 import TreeItem from "@/components/category/category-tree"
+import { queryClient } from "@/components/QueryClientProviders"
 
 
 export default function CategoriesContent() {
@@ -157,7 +158,7 @@ export default function CategoriesContent() {
         setExpandedIds(new Set())
     }
 
-    const moveUp = (category: Category) => {
+    const moveUp = async (category: Category) => {
         const siblings = categories.filter((c) => c.parent === category.parent).sort((a, b) => a.order - b.order)
         const index = siblings.findIndex((c) => c._id === category._id)
         if (index > 0) {
@@ -169,11 +170,12 @@ export default function CategoriesContent() {
                     return c
                 }),
             )
+            await handleMoveCategory(category._id, prevSibling._id, "before")
         }
     }
 
     // Move category down
-    const moveDown = (category: Category) => {
+    const moveDown = async (category: Category) => {
         const siblings = categories.filter((c) => c.parent === category.parent).sort((a, b) => a.order - b.order)
         const index = siblings.findIndex((c) => c._id === category._id)
         if (index < siblings.length - 1) {
@@ -185,6 +187,7 @@ export default function CategoriesContent() {
                     return c
                 }),
             )
+            await handleMoveCategory(category._id, nextSibling._id, "after")
         }
     }
 
@@ -200,14 +203,16 @@ export default function CategoriesContent() {
 
     const handleDrop = async (
         e: React.DragEvent,
-        target: Category,
+        targetCategory: Category,
         position: "before" | "after" | "inside"
     ) => {
         e.preventDefault()
 
-        if (!draggedCategory || draggedCategory._id === target._id) return
+        if (!draggedCategory || draggedCategory._id === targetCategory._id) {
+            setDraggedCategory(null)
+            return
+        }
 
-        // prevent parent → child
         const isDescendant = (parentId: string, childId: string): boolean => {
             const children = categories.filter(c => c.parent === parentId)
             for (const child of children) {
@@ -217,29 +222,67 @@ export default function CategoriesContent() {
             return false
         }
 
-        if (position === "inside" && isDescendant(draggedCategory._id, target._id)) {
+        if (isDescendant(draggedCategory._id, targetCategory._id)) {
+            setDraggedCategory(null)
             return
         }
 
-        // 👉 Optimistic UI (optional – đơn giản)
-        setCategories(prev =>
-            prev.map(c =>
-                c._id === draggedCategory._id
-                    ? { ...c, parent: position === "inside" ? target._id : target.parent }
-                    : c
-            )
-        )
+        let newParentId: string | null
+        let newOrder: number
+
+        if (position === "inside") {
+            newParentId = targetCategory._id
+            const children = categories.filter(c => c.parent === newParentId)
+            newOrder = children.length ? Math.max(...children.map(c => c.order)) + 1 : 1
+
+            setExpandedIds(prev => new Set([...prev, targetCategory._id]))
+        } else {
+            newParentId = targetCategory.parent
+
+            const siblings = categories
+                .filter(c => c.parent === newParentId && c._id !== draggedCategory._id)
+                .sort((a, b) => a.order - b.order)
+
+            const targetIndex = siblings.findIndex(c => c._id === targetCategory._id)
+            const insertIndex = position === "before" ? targetIndex : targetIndex + 1
+
+            const reordered = [...siblings]
+            reordered.splice(insertIndex, 0, draggedCategory)
+
+            setCategories(categories.map(c => {
+                const index = reordered.findIndex(r => r._id === c._id)
+                if (c._id === draggedCategory._id) {
+                    return { ...c, parent: newParentId, order: insertIndex + 1 }
+                }
+                if (index !== -1 && c.parent === newParentId) {
+                    return { ...c, order: index + 1 }
+                }
+                return c
+            }))
+
+            setDraggedCategory(null)
+
+            // ✅ GỌI API
+            await handleMoveCategory(draggedCategory._id, targetCategory._id, position)
+            return
+        }
+
+        setCategories(categories.map(c =>
+            c._id === draggedCategory._id
+                ? { ...c, parent: newParentId, order: newOrder }
+                : c
+        ))
 
         setDraggedCategory(null)
 
-        // 👉 Call API
-        await handleMoveCategory(draggedCategory._id, target._id, position)
+        // ✅ GỌI API
+        await handleMoveCategory(draggedCategory._id, targetCategory._id, position)
     }
-
 
     const handleMoveCategory = async (categoryId: string, targetId: string | null, position: 'inside' | 'before' | 'after') => {
         try {
             await moveCategory(categoryId, targetId, position);
+            queryClient.invalidateQueries({ queryKey: ['categories-for-select'] });
         } catch (error) {
             console.log(error);
         }
@@ -293,7 +336,7 @@ export default function CategoriesContent() {
                                 <FolderTree className="h-5 w-5 text-blue-500" />
                             </div>
                             <div>
-                                {/* <p className="text-2xl font-bold">{rootCategories}</p> */}
+                                <p className="text-2xl font-bold">{rootCategories.length}</p>
                                 <p className="text-sm text-muted-foreground">Danh mục gốc</p>
                             </div>
                         </div>

@@ -94,7 +94,7 @@ export default function BrandsContent() {
     try {
       await changeBrandStatus(id);
       queryClient.invalidateQueries({ queryKey: ['brand-for-product'] });
-
+      queryClient.invalidateQueries({ queryKey: ['brands-for-select'] });
     } catch (error: any) {
       console.log(error);
 

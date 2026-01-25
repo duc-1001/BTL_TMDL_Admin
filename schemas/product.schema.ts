@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"]
-const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB (tuỳ bạn)
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB (tuỳ bạn)
 
 export const productSchema = z
     .object({
@@ -40,12 +40,12 @@ export const productSchema = z
                         (file) =>
                             typeof file === "string" ||
                             ACCEPTED_IMAGE_TYPES.includes(file.type),
-                        { message: "Ảnh chỉ chấp nhận định dạng PNG hoặc JPG" }
+                        { message: "Ảnh chỉ chấp nhận định dạng PNG, JPG hoặc WEBP" }
                     )
                     .refine(
                         (file) =>
                             typeof file === "string" || file.size <= MAX_FILE_SIZE,
-                        { message: "Dung lượng ảnh tối đa 2MB" }
+                        { message: "Dung lượng ảnh tối đa 10MB" }
                     )
             )
             .min(1, "Phải có ít nhất một hình ảnh"),
@@ -66,8 +66,8 @@ export const productSchema = z
             .number()
             .positive("Trọng lượng phải lớn hơn 0"),
 
-        unit: z.enum(["g", "kg"], {
-            message: "Đơn vị phải là g hoặc kg",
+        unit: z.enum(["g", "kg", "ml", "l"], {
+            message: "Đơn vị phải là g, kg, ml hoặc lít",
         }),
 
         // ===== ĐỒ ĂN VẶT =====
@@ -113,14 +113,14 @@ export const productSchema = z
     .superRefine((data, ctx) => {
         if (data.isInitialStock === true) {
             // BẮT BUộc có stock
-            if (data.stock === undefined || data.stock <=0) {
+            if (data.stock === undefined || data.stock <= 0) {
                 ctx.addIssue({
                     path: ["stock"],
                     message: "Phải nhập số lượng tồn kho khi khởi tạo tồn kho ban đầu",
                     code: z.ZodIssueCode.custom,
                 })
             }
-            if (data.importPrice === undefined || data.importPrice <=0) {
+            if (data.importPrice === undefined || data.importPrice <= 0) {
                 ctx.addIssue({
                     path: ["importPrice"],
                     message: "Phải nhập giá nhập khi khởi tạo tồn kho ban đầu",
@@ -140,9 +140,9 @@ export const productSchema = z
             }
             else {
                 const today = new Date();
-                today.setHours(0,0,0,0);
+                today.setHours(0, 0, 0, 0);
                 const expDate = new Date(data.expirationDate);
-                expDate.setHours(0,0,0,0);
+                expDate.setHours(0, 0, 0, 0);
                 if (expDate <= today) {
                     ctx.addIssue({
                         path: ["expirationDate"],
@@ -151,7 +151,7 @@ export const productSchema = z
                     })
                 }
             }
-        } 
+        }
     })
 
 export const productSchemaEdit = z.object({
@@ -177,7 +177,7 @@ export const productSchemaEdit = z.object({
                     if (!file || typeof file === "string") return true
                     return ACCEPTED_IMAGE_TYPES.includes(file.type)
                 },
-                { message: "Ảnh chỉ chấp nhận file PNG hoặc JPG" }
+                { message: "Ảnh chỉ chấp nhận file PNG, JPG hoặc WEBP" }
             )
             .refine(
                 (file) => {
@@ -206,8 +206,8 @@ export const productSchemaEdit = z.object({
 
     // ===== TRỌNG LƯỢNG (CHUẨN THEO LOGIC CỦA BẠN) =====
     weight: z.number().positive("Trọng lượng phải lớn hơn 0"), // trọng lượng 1 đơn vị
-    unit: z.enum(["g", "kg"], {
-        message: "Đơn vị phải là g hoặc kg",
+    unit: z.enum(["g", "kg", "ml", "l"], {
+        message: "Đơn vị phải là g, kg, ml hoặc lít",
     }),
 
     ingredient: z

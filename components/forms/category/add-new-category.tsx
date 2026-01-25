@@ -64,14 +64,18 @@ const AddNewCategory = ({ setIsAddDialogOpen, categories }: AddNewCategoryProps)
         }
     }
     const previewImage = watch("image") instanceof File ? URL.createObjectURL(watch("image")) : null;
+
+    const parent = watch("parent") || "none"
+
     useEffect(() => {
-        if (watch("parent") ==="none") {
+        if (parent === "none") {
             setValue("order", categories.filter(cat => !cat.parent).length + 1);
         }
         else {
-            setValue("order", categories.filter(cat => cat.parent === watch("parent")).length + 1);
+            setValue("order", categories.filter(cat => cat.parent === parent).length + 1);
         }
-    }, [watch("parent"), setValue]);
+    }, [parent, setValue]);
+    
     return (
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <form onSubmit={handleSubmit(onSubmit)}>

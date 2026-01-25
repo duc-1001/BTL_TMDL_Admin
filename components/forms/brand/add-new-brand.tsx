@@ -14,7 +14,7 @@ import React from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"]
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB (tuỳ bạn)
 
 interface AddNewBrandProps {
@@ -48,6 +48,7 @@ const AddNewBrand = (props: AddNewBrandProps) => {
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['admin-brands'] });
             queryClient.invalidateQueries({ queryKey: ['brand-for-product'] });
+            queryClient.invalidateQueries({ queryKey: ['brands-for-select'] });
             toast.success("Thêm thương hiệu thành công");
             setDialogOpen(false);
             reset();
@@ -120,12 +121,12 @@ const AddNewBrand = (props: AddNewBrandProps) => {
                                 <Input
                                     id="logo"
                                     type="file"
-                                    accept="image/png,image/jpeg"
+                                    accept="image/png,image/jpeg,image/webp"
                                     onChange={(e) => {
                                         const file = e.target.files?.[0]
                                         if (file) {
                                             if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-                                                setError("logo", { type: "manual", message: "Logo chỉ chấp nhận file PNG hoặc JPG" })
+                                                setError("logo", { type: "manual", message: "Logo chỉ chấp nhận file PNG, JPG hoặc WEBP" })
                                                 setValue("logo", undefined)
                                                 return
                                             }
@@ -140,7 +141,7 @@ const AddNewBrand = (props: AddNewBrandProps) => {
                                     }}
                                 />
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    Chỉ nhận PNG, JPG (tối đa 2MB)
+                                    Chỉ nhận PNG, JPG hoặc WEBP (tối đa 2MB)
                                 </p>
 
                                 {errors.logo && (

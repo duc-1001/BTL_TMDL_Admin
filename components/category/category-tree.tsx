@@ -1,5 +1,5 @@
 import { Category } from "@/types/category"
-import { ChevronDown, ChevronRight, Folder, FolderOpen, GripVertical, MoreHorizontal, Pencil, Trash2, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react"
+import { ChevronDown, ChevronRight, Folder, FolderOpen, GripVertical, MoreHorizontal, Pencil, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, Award } from "lucide-react"
 import React, { useState } from "react"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
@@ -45,7 +45,7 @@ function TreeItem({
     const [dropPosition, setDropPosition] = useState<"before" | "after" | "inside" | null>(null)
     const hasChildren = children.length > 0
     console.log(hasChildren);
-    
+
     const isExpanded = expandedIds.has(category._id)
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -68,16 +68,14 @@ function TreeItem({
         setDropPosition(null)
     }
 
-    const handleDrop = (e: React.DragEvent) => {
+    const handleDrop = async (e: React.DragEvent) => {
         e.preventDefault()
         e.stopPropagation()
         if (dropPosition) {
-            onDrop(e, category, dropPosition)
+           await onDrop(e, category, dropPosition)
         }
         setDropPosition(null)
     }
-
-    console.log(children);
 
 
     return (
@@ -116,11 +114,13 @@ function TreeItem({
                         }}
                         className={`p-1 rounded hover:bg-muted transition-colors flex-shrink-0 ${!hasChildren ? "invisible" : ""}`}
                     >
-                        {isExpanded ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        )}
+                        {
+                            hasChildren && (isExpanded ? (
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            ))
+                        }
                     </button>
 
                     {/* Folder icon */}
@@ -230,7 +230,7 @@ function TreeItem({
             {isExpanded && hasChildren && (
                 <div className="relative">
                     {/* Tree line */}
-                    <div className="absolute top-0 bottom-4 w-px bg-border" style={{ left: `${level * 32 + 28}px` }} />
+                    <div className="absolute top-0 bottom-4 w-px " style={{ left: `${level * 32 + 28}px` }} />
                     {children.map((child, index) => {
                         const childChildren = allCategories.filter((c) => c.parent === child._id)
                         return (

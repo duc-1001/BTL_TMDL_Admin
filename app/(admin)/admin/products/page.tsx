@@ -127,79 +127,88 @@ export default function ProductsPage() {
                                     <TableHead className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Thao tác</TableHead>
                                 </TableRow>
                             </TableHeader>
+
                             <TableBody>
-                                {products.map((product) => (
-                                    <TableRow key={product._id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                                        <TableCell className="py-3 px-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                                                    <img
-                                                        src={product?.images?.[0]?.url || "/placeholder.svg"}
-                                                        alt={product.name}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-medium line-clamp-1">{product.name}</p>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="py-3 px-2 text-sm">{product.category?.name}</TableCell>
-                                        <TableCell className="py-3 px-2 font-medium">{formatPrice(product.price)}</TableCell>
-                                        <TableCell className="py-3 px-2 text-sm">{product.stock}</TableCell>
-                                        <TableCell className="py-3 px-2 text-sm">{product.soldQuantity}</TableCell>
-                                        <TableCell className="py-3 px-2">{getStatusBadge(product.stock)}</TableCell>
-                                        <TableCell className="py-3 px-2">
-                                            {product.isActive ? (
-                                                <Badge className="bg-green-500">Đang hiển thị</Badge>
-                                            ) : (
-                                                <Badge className="bg-red-500">Đã ẩn</Badge>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="py-3 px-2 text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem>
-                                                        <Link href={`/admin/products/${product._id}`} className="flex gap-2 items-center">
-                                                            <Eye className="h-4 w-4 mr-2" />
-                                                            Xem sản phẩm
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => onChangeStatus(product)}>
-                                                        <EyeOff className="h-4 w-4 mr-2" />
-                                                        {
-                                                            product.isActive ? "Ẩn sản phẩm" : "Hiển thị sản phẩm"
-                                                        }
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem>
-                                                        <Link href={`/admin/products/edit/${product._id}`} className="flex gap-2 items-center">
-                                                            <Pencil className="h-4 w-4 mr-2" />
-                                                            Chỉnh sửa
-                                                        </Link>
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => handleDeleteProduct(product)}
-                                                        className="text-destructive">
-                                                        <Trash2 className="h-4 w-4 mr-2" />
-                                                        Xóa
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                {totalItems === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
+                                            Không tìm thấy sản phẩm nào.
                                         </TableCell>
                                     </TableRow>
-                                ))}
+                                )
+                                    :
+                                    products.map((product) => (
+                                        <TableRow key={product._id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                                            <TableCell className="py-3 px-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                                                        <img
+                                                            src={product?.images?.[0]?.url || "/placeholder.svg"}
+                                                            alt={product.name}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="font-medium line-clamp-1">{product.name}</p>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-3 px-2 text-sm">{product.category?.name}</TableCell>
+                                            <TableCell className="py-3 px-2 font-medium">{formatPrice(product.price)}</TableCell>
+                                            <TableCell className="py-3 px-2 text-sm">{product.stock}</TableCell>
+                                            <TableCell className="py-3 px-2 text-sm">{product.soldQuantity}</TableCell>
+                                            <TableCell className="py-3 px-2">{getStatusBadge(product.stock)}</TableCell>
+                                            <TableCell className="py-3 px-2">
+                                                {product.isActive ? (
+                                                    <Badge className="bg-green-500">Đang hiển thị</Badge>
+                                                ) : (
+                                                    <Badge className="bg-red-500">Đã ẩn</Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="py-3 px-2 text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem>
+                                                            <Link href={`/admin/products/${product._id}`} className="flex gap-2 items-center">
+                                                                <Eye className="h-4 w-4 mr-2" />
+                                                                Xem sản phẩm
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => onChangeStatus(product)}>
+                                                            <EyeOff className="h-4 w-4 mr-2" />
+                                                            {
+                                                                product.isActive ? "Ẩn sản phẩm" : "Hiển thị sản phẩm"
+                                                            }
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem>
+                                                            <Link href={`/admin/products/edit/${product._id}`} className="flex gap-2 items-center">
+                                                                <Pencil className="h-4 w-4 mr-2" />
+                                                                Chỉnh sửa
+                                                            </Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDeleteProduct(product)}
+                                                            className="text-destructive">
+                                                            <Trash2 className="h-4 w-4 mr-2" />
+                                                            Xóa
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
                             </TableBody>
                         </Table>
                     </div>
 
                 </CardContent>
             </Card>
-            <PaginationControls totalPages={totalPages} currentPage={currentPage} itemsPerPage={itemsPerPage} setCurrentPage={setCurrentPage} setItemsPerPage={setItemsPerPage} totalItems={totalItems} />
+            {totalItems > 0 && <PaginationControls totalPages={totalPages} currentPage={currentPage} itemsPerPage={itemsPerPage} setCurrentPage={setCurrentPage} setItemsPerPage={setItemsPerPage} totalItems={totalItems} />}
             <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <DeleteProduct setDeleteDialogOpen={setDeleteDialogOpen} selectedProduct={deletingProduct!} />
             </Dialog>

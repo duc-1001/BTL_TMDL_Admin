@@ -25,7 +25,7 @@ import { createProduct, editProduct, getProductByIdAdmin } from "@/services/prod
 import { queryClient } from "@/components/QueryClientProviders"
 import { toast } from "sonner"
 
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg"]
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/jpg", "image/webp"]
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB (tuỳ bạn)
 
 
@@ -134,7 +134,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         }
     }, [categories])
     const updateProductMutation = useMutation({
-        mutationFn: ({id, data}: {id: string, data: any}) => editProduct(id, data),
+        mutationFn: ({ id, data }: { id: string, data: any }) => editProduct(id, data),
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['admin-products'] });
             toast.success("Cập nhật sản phẩm thành công");
@@ -152,7 +152,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             brand: data.brand._id,
         }
         try {
-            await updateProductMutation.mutateAsync({id, data: payload});
+            await updateProductMutation.mutateAsync({ id, data: payload });
         }
         catch (error) {
         }
@@ -166,7 +166,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             const newImages = Array.from(files)
             newImages.forEach((file) => {
                 if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-                    setError("images", { type: "manual", message: "Ảnh chỉ chấp nhận file PNG hoặc JPG" })
+                    setError("images", { type: "manual", message: "Ảnh chỉ chấp nhận file PNG, JPG hoặc WEBP" })
                     e.target.value = "" // reset value to allow re-upload the same file
                     return
                 }
@@ -204,6 +204,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
         }
     }
 
+    console.log(errors);
+    
 
     return (
         <div className="min-h-screen bg-background">
@@ -543,6 +545,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                                                         <SelectContent>
                                                             <SelectItem value="g">g</SelectItem>
                                                             <SelectItem value="kg">kg</SelectItem>
+                                                            <SelectItem value="ml">ml</SelectItem>
+                                                            <SelectItem value="l">l</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 )}

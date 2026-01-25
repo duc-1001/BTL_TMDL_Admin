@@ -18,6 +18,7 @@ const DeleteBrand = ({ setDeleteDialogOpen, deleteTarget }: DeleteBrandProps) =>
             setDeleteDialogOpen(false)
             queryClient.invalidateQueries({ queryKey: ['admin-brands'] })
             queryClient.invalidateQueries({ queryKey: ['brand-for-product'] });
+            queryClient.invalidateQueries({ queryKey: ['brands-for-select'] });
 
             toast.success('Xóa thương hiệu thành công')
         },
