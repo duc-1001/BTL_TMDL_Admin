@@ -44,8 +44,6 @@ function TreeItem({
 }: TreeItemProps) {
     const [dropPosition, setDropPosition] = useState<"before" | "after" | "inside" | null>(null)
     const hasChildren = children.length > 0
-    console.log(hasChildren);
-
     const isExpanded = expandedIds.has(category._id)
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -77,6 +75,7 @@ function TreeItem({
         setDropPosition(null)
     }
 
+    const productCount = hasChildren ? children.reduce((sum, child) => sum + (child.productCount || 0), 0) : (category.productCount || 0)
 
     return (
         <div className="select-none">
@@ -145,7 +144,7 @@ function TreeItem({
                                     </Badge>
                                 )}
                                 <Badge variant="secondary" className="text-xs">
-                                    {category.productCount} SP
+                                    {productCount} SP
                                 </Badge>
                                 {!category.isActive && (
                                     <Badge variant="outline" className="text-xs text-muted-foreground">

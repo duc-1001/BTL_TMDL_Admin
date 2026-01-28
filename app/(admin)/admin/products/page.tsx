@@ -123,6 +123,7 @@ export default function ProductsPage() {
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Tồn kho</TableHead>
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Đã bán</TableHead>
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Trạng thái</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Nổi bật</TableHead>
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Hiển thị</TableHead>
                                     <TableHead className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Thao tác</TableHead>
                                 </TableRow>
@@ -165,6 +166,14 @@ export default function ProductsPage() {
                                                     <Badge className="bg-red-500">Đã ẩn</Badge>
                                                 )}
                                             </TableCell>
+                                            <TableCell className="py-3 px-2">
+                                                {product.isFeatured ? (
+                                                    <Badge className="bg-green-500">Nổi bật</Badge>
+                                                ) : (
+                                                    <Badge className="bg-red-500">Không nổi bật</Badge>
+                                                )}
+                                            </TableCell>
+                                            
                                             <TableCell className="py-3 px-2 text-right">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>

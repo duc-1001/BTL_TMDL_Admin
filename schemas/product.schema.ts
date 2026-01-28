@@ -17,6 +17,16 @@ export const productSchema = z
             .max(500, "Mô tả sản phẩm không được vượt quá 500 ký tự")
             .optional(),
 
+        shortDescription: z
+            .string()
+            .min(20, "Mô tả ngắn tối thiểu 20 ký tự")
+            .max(160, "Tối đa 160 ký tự"),
+
+        highlights: z
+            .array(z.string().min(3))
+            .max(6, "Tối đa 6 ưu điểm")
+            .optional(),
+
         // ===== GIÁ =====
         price: z
             .number()
@@ -164,6 +174,16 @@ export const productSchemaEdit = z.object({
     description: z
         .string()
         .max(500, "Mô tả sản phẩm không được vượt quá 500 ký tự")
+        .optional(),
+
+    shortDescription: z
+        .string()
+        .min(20, "Mô tả ngắn tối thiểu 20 ký tự")
+        .max(160, "Tối đa 160 ký tự"),
+
+    highlights: z
+        .array(z.string().min(3))
+        .max(6, "Tối đa 6 ưu điểm")
         .optional(),
     // ===== GIÁ =====
     price: z.number().gt(0, "Giá bán phải lớn hơn 0"),

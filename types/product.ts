@@ -11,6 +11,8 @@ export type Product = {
     // ===== pricing =====
     price: number
     originalPrice: number
+    shortDescription: string,
+    highlights: string[],
 
     // ===== relations =====
     category: {
@@ -59,7 +61,12 @@ export type Product = {
 
     // ===== meta =====
     createdAt: string
-    updatedAt: string
+    updatedAt: string,
+    rating?: number
+    discount: number
+    reviewCount?: number
+    badge?: string
+    isLiked?: boolean
 }
 
 
@@ -156,6 +163,9 @@ export type ProductEdit = {
     // ===== meta =====
     createdAt: string
     updatedAt: string
+
+    shortDescription: string,
+    highlights: string[],
 }
 
 export type BasicProductForm = {
@@ -191,4 +201,39 @@ export type ProductBatch = {
     importedAt: string,
     importPrice: number,
     status: "active" | "expired" | "sold_out" | "near_expiry" | "disposed",
+}
+
+export type HomeProduct = {
+    _id: string
+    name: string
+    slug: string
+    price: number
+    originalPrice: number
+    image: string
+    stock: number
+    soldQuantity: number
+    rating?: number
+    discount: number
+    reviewCount?: number
+    badge?: string
+    description?: string
+    shortDescription?: string
+    isLiked?: boolean
+}
+
+export type SimilarProduct = {
+    _id: string
+    name: string
+    slug: string
+    price: number
+    originalPrice: number
+    image: string
+    stock: number
+    soldQuantity: number
+    rating?: number
+    discount: number
+    reviewCount?: number
+    badge?: string
+    description?: string
+    shortDescription?: string
 }

@@ -101,6 +101,8 @@ export default function NewProductPage() {
       images: [],
       importPrice: 0,
       isInitialStock: false,
+      highlights: [],
+      shortDescription: "",
     }
   })
 
@@ -123,6 +125,7 @@ export default function NewProductPage() {
       category: data.category._id,
       brand: data.brand._id,
       expirationDate: data.expirationDate ? data?.expirationDate?.toISOString()?.split("T")[0] : undefined,
+      highlights: data.highlights?.filter((item) => item.trim() !== ""), // Loại bỏ các ưu điểm rỗng
     }
     try {
       console.log(payload);
@@ -165,7 +168,7 @@ export default function NewProductPage() {
 
     if (hasError) {
       e.target.value = ""
-      return 
+      return
     }
 
     clearErrors("images")
@@ -236,7 +239,61 @@ export default function NewProductPage() {
                     />
                     {errors.name && <p className="text-xs text-red-500 mt-1 font-medium">{errors.name.message}</p>}
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="shortDescription">
+                      Mô tả ngắn
+                    </Label>
+                    <Textarea
+                      id="shortDescription"
+                      rows={2}
+                      placeholder="Snack khoai tây giòn tan, hương BBQ đậm đà, phù hợp ăn vặt mỗi ngày..."
+                      {...register("shortDescription")}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      {watch("shortDescription")?.length || 0}/160
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Ưu điểm nổi bật</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setValue("highlights", [...(watch("highlights") || []), ""])
+                        }
+                      >
+                        + Thêm ưu điểm
+                      </Button>
+                    </div>
 
+                    {(watch("highlights") || []).map((item, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={item}
+                          placeholder={`Ưu điểm ${index + 1}`}
+                          onChange={(e) => {
+                            const newList = [...(watch("highlights") || [])]
+                            newList[index] = e.target.value
+                            setValue("highlights", newList)
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            const newList = watch("highlights")?.filter((_, i) => i !== index)
+                            setValue("highlights", newList)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {errors.highlights && <p className="text-xs text-red-500 mt-1 font-medium">{errors.highlights.message}</p>}
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Mô tả sản phẩm</Label>
                     <Textarea
@@ -247,7 +304,6 @@ export default function NewProductPage() {
                     />
                     <p className="text-xs text-muted-foreground">{watch("description")?.length || 0}/500</p>
                   </div>
-
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div className="space-y-2 w-full">
                       <Label htmlFor="category">
@@ -600,7 +656,6 @@ export default function NewProductPage() {
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Trạng thái & Hiển thị</CardTitle>

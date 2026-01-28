@@ -85,6 +85,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             isActive: true,
             tags: "",
             images: [],
+            highlights: [],
+            shortDescription: "",
         }
     })
 
@@ -115,6 +117,8 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             setValue("isActive", product.isActive)
             setValue("tags", product?.tags?.join(", "))
             setValue("images", product.images.map(img => img.url) || [])
+            setValue("shortDescription", product.shortDescription || "")
+            setValue("highlights", product.highlights || [])
         }
     }, [product, setValue])
 
@@ -150,6 +154,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
             ...data,
             category: data.category._id,
             brand: data.brand._id,
+            highlights: data.highlights?.filter((item) => item.trim() !== ""), // Loại bỏ các ưu điểm rỗng
         }
         try {
             await updateProductMutation.mutateAsync({ id, data: payload });
@@ -205,7 +210,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
     }
 
     console.log(errors);
-    
+
 
     return (
         <div className="min-h-screen bg-background">
@@ -245,7 +250,61 @@ export default function EditProductPage({ params }: EditProductPageProps) {
                                         />
                                         {errors.name && <p className="text-xs text-red-500 mt-1 font-medium">{errors.name.message}</p>}
                                     </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="shortDescription">
+                                            Mô tả ngắn
+                                        </Label>
+                                        <Textarea
+                                            id="shortDescription"
+                                            rows={2}
+                                            placeholder="Snack khoai tây giòn tan, hương BBQ đậm đà, phù hợp ăn vặt mỗi ngày..."
+                                            {...register("shortDescription")}
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            {watch("shortDescription")?.length || 0}/160
+                                        </p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label>Ưu điểm nổi bật</Label>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                    setValue("highlights", [...(watch("highlights") || []), ""])
+                                                }
+                                            >
+                                                + Thêm ưu điểm
+                                            </Button>
+                                        </div>
 
+                                        {(watch("highlights") || []).map((item, index) => (
+                                            <div key={index} className="flex gap-2">
+                                                <Input
+                                                    value={item}
+                                                    placeholder={`Ưu điểm ${index + 1}`}
+                                                    onChange={(e) => {
+                                                        const newList = [...(watch("highlights") || [])]
+                                                        newList[index] = e.target.value
+                                                        setValue("highlights", newList)
+                                                    }}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        const newList = watch("highlights")?.filter((_, i) => i !== index)
+                                                        setValue("highlights", newList)
+                                                    }}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        {errors.highlights && <p className="text-xs text-red-500 mt-1 font-medium">{errors.highlights.message}</p>}
+                                    </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="description">Mô tả sản phẩm</Label>
                                         <Textarea

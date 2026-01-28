@@ -1,7 +1,7 @@
 import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { CategoryForm } from "@/schemas/category.schema";
-import { Category, ProductCategory } from "@/types/category";
+import { Category, CategoryTree, ProductCategory } from "@/types/category";
 import { ApiResponse } from "@/types/commons";
 
 export const createCategory = async (data: CategoryForm) => {
@@ -48,3 +48,18 @@ export const getAllCategoriesForProduct = async () => {
     const response = await ApiClient.get<ApiResponse<ProductCategory[]>>('/categories/for-product');
     return response.data;
 }
+
+export const getCategories = async (parentId?: string, isFeatured?: boolean, type?: string) => {
+    const params: Record<string, string> = {};
+    if (parentId) params.parentId = parentId;
+    if (isFeatured !== undefined) params.isFeatured = isFeatured.toString();
+    if (type) params.type = type;
+    const response = await ApiClient.get<ApiResponse<Category[]>>('/categories',  params );
+    return response.data;
+}
+
+export const getCategoryRootTree = async () => {
+    const response = await ApiClient.get<ApiResponse<CategoryTree[]>>('/categories',{ parentId: null, type: "tree" } );
+    return response.data;
+}
+

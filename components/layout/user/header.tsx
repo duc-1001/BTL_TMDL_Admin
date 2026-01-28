@@ -51,7 +51,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           <Link href="/" className="items-center gap-2 hidden md:flex">
-            <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-primary-foreground font-bold text-lg">
+            <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-primary-foreground font-bold text-lg">
               🍿
             </div>
             <span className="font-bold text-xl hidden sm:inline-block text-balance">Snack Việt</span>
@@ -75,9 +75,9 @@ export function Header() {
           </form>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+            {/* <Button variant="ghost" size="icon" className="hidden md:flex">
               <Heart className="h-5 w-5" />
-            </Button>
+            </Button> */}
             {
               isAuthenticated ? (
                 <DropdownMenu>
@@ -117,12 +117,12 @@ export function Header() {
                         <span>Danh sách yêu thích</span>
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    {/* <DropdownMenuItem asChild>
                       <Link href="/account" className="cursor-pointer">
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Cài đặt</span>
                       </Link>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />

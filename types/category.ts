@@ -20,5 +20,15 @@ export interface ProductCategory {
   children: ProductCategory[]
 }
 
+export interface CategoryTree {
+   _id: string;          
+  name: string;
+  slug: string;
+  image?: string;     
+  productCount?: number;  
+  children: CategoryTree[];
+}
+
+
 
 

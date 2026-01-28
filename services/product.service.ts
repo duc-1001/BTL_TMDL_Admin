@@ -1,7 +1,7 @@
 import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { ApiResponse, PaginatedData } from "@/types/commons";
-import { BasicProductForm, BatchProductStatus, Product,ProductAdmin, ProductBatch, ProductEdit } from "@/types/product";
+import { BasicProductForm, BatchProductStatus, HomeProduct, Product,ProductAdmin, ProductBatch, ProductEdit, SimilarProduct } from "@/types/product";
 
 export const createProduct = async (data: any) => {
     const formData = buildFormData(data);
@@ -67,4 +67,20 @@ export const createProductBatch = async (productId:string, data:any) => {
         { headers: { 'Content-Type': 'multipart/form-data' } }
     );
     return response;
+}
+
+export const getHomeProducts = async (limit:number) => {
+    const response = await ApiClient.get<ApiResponse<HomeProduct[]>>('/products/home',{limit});
+    return response.data;
+}
+
+export const getProductBySlug = async (slug: string) => {
+    const response = await ApiClient.get<ApiResponse<Product>>(`/products/${slug}`);
+    return response.data;
+}
+
+export const getSimilarProducts = async (id: string, limit: number = 4) => {
+    const params = { limit }
+    const response = await ApiClient.get<ApiResponse<SimilarProduct[]>>(`/products/${id}/similar`, params);
+    return response.data;
 }

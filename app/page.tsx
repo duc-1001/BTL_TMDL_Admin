@@ -1,6 +1,6 @@
-import { HeroSection } from "@/components/hero-section"
-import { CategoryGrid } from "@/components/category-grid"
-import { ProductGrid } from "@/components/product-grid"
+import { HeroSection } from "@/components/home/hero-section"
+import { CategoryGrid } from "@/components/home/category-grid"
+import { ProductGrid } from "@/components/home/product-grid"
 import { Features } from "@/components/features"
 import UserLayout from "@/components/layout/user/user-layout"
 

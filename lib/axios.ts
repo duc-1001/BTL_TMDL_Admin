@@ -1,17 +1,21 @@
 import { logout, refreshAccessToken } from "@/services/auth.service";
 import { fetchLogout } from "@/store/slices/authSlice";
-import { RootState } from "@/store/store";
+import { AppDispatch, RootState } from "@/store/store";
+import { Store } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 
-let store: {
-    dispatch: (action: any) => void;
-} = {
-    dispatch: (_action: any) => {},
-};
-export const injectStore = (_store: { dispatch: (action: any) => void }) => {
-    store = _store;
+let store: Store | null = null;
+
+export const injectStore = (_store: Store) => {
+  store = _store;
 };
 
+export const getDispatch = (): AppDispatch => {
+  if (!store) {
+    throw new Error("Redux store has not been injected");
+  }
+  return store.dispatch;
+};
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL + "/api" || "http://localhost:8000/api",
   withCredentials: true,
@@ -43,6 +47,7 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const status = error.response?.status;
     const data = error.response?.data as any;
+    const dispatch = getDispatch();
 
     const originalRequest: any = error.config;
     const url = originalRequest.url || "";
@@ -51,9 +56,11 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (url.includes("/auth/refresh-token")) {
-      store.dispatch(fetchLogout());
-      return Promise.reject(error);
+    if (
+      error.response?.status === 401 &&
+      url?.includes("/auth/refresh-token")
+    ) {
+      dispatch(fetchLogout());
     }
 
 

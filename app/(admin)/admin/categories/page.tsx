@@ -495,7 +495,7 @@ export default function CategoriesContent() {
 
             {/* Add Category Dialog */}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <AddNewCategory categories={categories} setIsAddDialogOpen={setIsAddDialogOpen} />
+                <AddNewCategory categories={rootCategories} setIsAddDialogOpen={setIsAddDialogOpen} />
             </Dialog>
 
             {/* Edit Category Dialog */}
