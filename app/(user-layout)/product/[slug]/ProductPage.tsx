@@ -12,44 +12,21 @@ import { Product } from "@/types/product"
 import { useRouter } from "next/navigation"
 import SimilarProductCard from "@/components/prodcuct/similar-product-card"
 import { toast } from "sonner"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
+import { queryClient } from "@/components/QueryClientProviders"
+import { addToWishlist, removeFromWishlist } from "@/services/wishlist.service"
+import LikeButton from "@/components/prodcuct/like-button"
+import AddToCartButton from "@/components/prodcuct/add-to-card-button"
+import { useCartActions } from "@/hooks/use-cart-actions"
 
-
-const relatedProducts = [
-  {
-    id: 2,
-    name: "Snack Lay's Kem Chua",
-    price: 28000,
-    image: "/lays-sour-cream-onion-chips.jpg",
-    rating: 4.6,
-  },
-  {
-    id: 4,
-    name: "Kẹo Alpenliebe",
-    price: 35000,
-    image: "/alpenliebe-caramel-candy-bag.jpg",
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: "Hạt điều rang muối",
-    price: 85000,
-    image: "/premium-roasted-cashew-nuts-package.jpg",
-    rating: 4.9,
-  },
-  {
-    id: 6,
-    name: "Bánh quy Cosy",
-    price: 32000,
-    image: "/cosy-butter-cookies-package.jpg",
-    rating: 4.4,
-  },
-]
 
 interface ProductPageProps {
   slug: string
 }
 
 export default function ProductPage({ slug }: ProductPageProps) {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const router = useRouter()
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["product-details", slug],
@@ -71,6 +48,8 @@ export default function ProductPage({ slug }: ProductPageProps) {
       currency: "VND",
     }).format(price)
   }
+  const { addItem } = useCartActions(isAuthenticated)
+  
 
   if (isLoading) {
     return <div>Loading...</div>
@@ -81,15 +60,47 @@ export default function ProductPage({ slug }: ProductPageProps) {
     return null
   }
 
-  const handleCopyLink = ()=>{
+  const handleCopyLink = () => {
     const url = window.location.href
     navigator.clipboard.writeText(url)
     toast.success("Sao chép liên kết thành công!")
   }
 
-  const handleAddToCart = () => {
-    console.log("[v0] Add to cart:", { productId: product._id, quantity })
+  const onToggleLikeProduct = async (productId: string) => {
+    if (!product) return
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để sử dụng tính năng này!")
+      return
+    }
+
+    const isLiked = product.isLiked
+    queryClient.setQueryData<Product>(["product-details", slug], old => {
+      if (!old) return old
+      return {
+        ...old,
+        isLiked: !isLiked
+      }
+    })
+
+    try {
+      if (isLiked) {
+        toast.success("Đã bỏ thích sản phẩm!")
+        await removeFromWishlist(productId)
+      } else {
+        toast.success("Đã thích sản phẩm!")
+        await addToWishlist(productId)
+      }
+    } catch (err) {
+      queryClient.setQueryData<Product>(["product-details", slug], old => {
+        if (!old) return old
+        return {
+          ...old,
+          isLiked: isLiked
+        }
+      })
+    }
   }
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1">
@@ -116,18 +127,18 @@ export default function ProductPage({ slug }: ProductPageProps) {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index ? "border-orange-400" : "border-muted hover:border-orange-500/50"
+                    className={`aspect-square p-2 rounded-lg overflow-hidden border-2 transition-all ${selectedImage === index ? "border-orange-400" : "border-muted hover:border-orange-500/50"
                       }`}
                   >
                     <img
                       src={image.url || "/placeholder.svg"}
                       alt={`${product.name} ${index + 1}`}
-                      className="max-w-[80px] object-cover"
+                      className="h-full max-w-[80px] m-auto object-cover"
                     />
                   </button>
                 ))}
               </div>
-              <div className="relative w-full max-h-[620px] rounded overflow-hidden border-2 bg-white">
+              <div className="relative w-full max-h-[620px] rounded-lg overflow-hidden border-2 p-2 bg-white">
                 <img
                   src={product.images[selectedImage].url || "/placeholder.svg"}
                   alt={product.name}
@@ -213,19 +224,17 @@ export default function ProductPage({ slug }: ProductPageProps) {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button size="lg" className="flex-1 text-base cursor-pointer" onClick={handleAddToCart}>
-                    <ShoppingCart className="h-5 w-5 mr-2" />
-                    Thêm vào giỏ
-                  </Button>
-                  <Button size="lg" variant="outline" className="bg-transparent cursor-pointer">
-                    <Heart className="h-5 w-5" />
-                  </Button>
+                  <AddToCartButton productId={product._id} quantity={quantity} />
+                  <LikeButton product={product} onToggleLike={onToggleLikeProduct} />
                   <Button onClick={handleCopyLink} size="lg" variant="outline" className="bg-transparent cursor-pointer">
                     <Share2 className="h-5 w-5" />
                   </Button>
                 </div>
 
-                <Button variant="default" size="lg" className="w-full text-base cursor-pointer bg-orange-600 hover:bg-orange-600/90">
+                <Button onClick={() => {
+                  addItem(product._id, quantity)
+                  router.push('/checkout')
+                }} variant="default" size="lg" className="w-full text-base cursor-pointer bg-orange-600 hover:bg-orange-600/90">
                   Mua ngay
                 </Button>
               </div>

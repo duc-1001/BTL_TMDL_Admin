@@ -29,6 +29,10 @@ export interface CategoryTree {
   children: CategoryTree[];
 }
 
+export interface CategoryForSelect{
+  _id: string;
+  name: string;
+}
 
 
 

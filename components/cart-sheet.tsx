@@ -1,60 +1,53 @@
 "use client"
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ShoppingCart, Plus, Minus, X, ShoppingBag } from "lucide-react"
-import { useState } from "react"
+import { ShoppingCart, Plus, Minus, X, ShoppingBag, Circle, CircleAlert } from "lucide-react"
 import Link from "next/link"
-
-interface CartItem {
-  id: number
-  name: string
-  price: number
-  quantity: number
-  image: string
-}
+import { useQuery } from "@tanstack/react-query"
+import { calculateCartPricing, getCart, getGuestCart } from "@/services/cart.service"
+import { formatPrice } from "@/lib/utils"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
+import { useCartActions } from "@/hooks/use-cart-actions"
+import { useRouter } from "next/navigation"
 
 export function CartSheet() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: 1,
-      name: "Bánh Snack Oishi",
-      price: 25000,
-      quantity: 2,
-      image: "/vietnamese-oishi-beef-snack-package.jpg",
+  const router = useRouter();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const cartQueryKey = isAuthenticated
+    ? ["user-cart"]
+    : ["guest-cart"]
+  const { data, isLoading } = useQuery({
+    queryKey: cartQueryKey,
+    queryFn: () => {
+      if (isAuthenticated) {
+        return getCart()
+      }
+      else {
+        const items = JSON.parse(localStorage.getItem("guest-cart") || "[]")
+        return getGuestCart(items)
+      }
     },
-    {
-      id: 2,
-      name: "Kẹo Alpenliebe",
-      price: 35000,
-      quantity: 1,
-      image: "/alpenliebe-caramel-candy-bag.jpg",
+  })
+
+  const { data: discountData } = useQuery({
+    queryKey: ["cart-pricing"],
+    queryFn: () => {
+      const items = isAuthenticated ? [] : JSON.parse(localStorage.getItem("guest-cart") || "[]")
+      const coupons = isAuthenticated ? [] : (JSON.parse(localStorage.getItem("guest-coupons") || "[]") as string[]);
+      return calculateCartPricing(items, coupons)
     },
-  ])
+  })
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price)
-  }
+  const { updateQuantity, removeItem } = useCartActions(isAuthenticated)
 
-  const updateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return
-    setCartItems((items) => items.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item)))
-  }
-
-  const removeItem = (id: number) => {
-    setCartItems((items) => items.filter((item) => item.id !== id))
-  }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = subtotal >= 200000 ? 0 : 30000
-  const total = subtotal + shipping
-
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const subtotal = discountData?.subtotal || 0
+  const discountDiscount = discountData?.discountDiscount || 0
+  const total = discountData?.totalPrice || 0
+  const totalItems = data?.items.length || 0
 
   return (
     <Sheet>
@@ -76,7 +69,7 @@ export function CartSheet() {
           </SheetTitle>
         </SheetHeader>
 
-        {cartItems.length === 0 ? (
+        {data?.items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center">
             <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center">
               <ShoppingCart className="h-12 w-12 text-muted-foreground" />
@@ -93,13 +86,13 @@ export function CartSheet() {
           <>
             <div className="flex-1 overflow-y-auto -mx-6 px-6">
               <div className="space-y-4 py-4">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex gap-4">
+                {data?.items.map((item) => (
+                  <div key={item.productId} className="flex gap-4">
                     <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                       <img
                         src={item.image || "/placeholder.svg"}
                         alt={item.name}
-                        className="w-full h-full object-cover"
+                        className="h-full m-auto object-cover"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -109,7 +102,7 @@ export function CartSheet() {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 flex-shrink-0"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.productId)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -121,7 +114,14 @@ export function CartSheet() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateQuantity(item.productId, item.quantity - 1)
+                              }
+                              else {
+                                removeItem(item.productId)
+                              }
+                            }}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -130,7 +130,9 @@ export function CartSheet() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => {
+                              updateQuantity(item.productId, item.quantity + 1)
+                            }}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -148,15 +150,10 @@ export function CartSheet() {
                   <span className="text-muted-foreground">Tạm tính</span>
                   <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
-                <div className="flex justify-between">
+                {/* <div className="flex justify-between">
                   <span className="text-muted-foreground">Phí vận chuyển</span>
                   <span className="font-medium">{shipping === 0 ? "Miễn phí" : formatPrice(shipping)}</span>
-                </div>
-                {subtotal < 200000 && (
-                  <p className="text-xs text-muted-foreground">
-                    Mua thêm {formatPrice(200000 - subtotal)} để được miễn phí vận chuyển
-                  </p>
-                )}
+                </div> */}
               </div>
 
               <Separator />
@@ -167,12 +164,16 @@ export function CartSheet() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" asChild className="flex-1 bg-transparent">
-                  <Link href="/products">Tiếp tục mua</Link>
-                </Button>
-                <Button asChild className="flex-1">
-                  <Link href="/checkout">Thanh toán</Link>
-                </Button>
+                <SheetClose asChild>
+                  <Button variant="outline" asChild className="flex-1 bg-transparent">
+                    <Link href="/products">Tiếp tục mua</Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button asChild className="flex-1">
+                    <Link href="/checkout">Thanh toán</Link>
+                  </Button>
+                </SheetClose>
               </div>
             </div>
           </>

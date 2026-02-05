@@ -46,7 +46,7 @@ const navigation = [
     { href: "/", label: "Trang chủ", icon: Home },
     { href: "/products", label: "Sản phẩm", icon: Package },
     { href: "/categories", label: "Danh mục", icon: Grid3x3 },
-    { href: "/promotions", label: "Khuyến mãi", icon: Tag },
+    { href: "/discounts", label: "Khuyến mãi", icon: Tag },
     { href: "/about", label: "Về chúng tôi", icon: Info },
     { href: "/contact", label: "Liên hệ", icon: Phone },
     { href: "/faq", label: "Câu hỏi thường gặp", icon: HelpCircle },

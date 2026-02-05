@@ -1,7 +1,5 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,8 +38,9 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const response = await login(data.email, data.password);
+      const response = await login(data.email.toLowerCase(), data.password);
       dispatch({ type: 'auth/loginSuccess', payload: { user: response.data } });
+
       toast.success("Đăng nhập thành công")
       router.push("/")
     } catch (error) {
@@ -50,7 +49,7 @@ export default function LoginPage() {
   }
 
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google/login`;
+    window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google/login?prompt=select_account`;
   };
 
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { User, Package, Heart, MapPin, Settings, LogOut, Edit } from "lucide-react"
+import { User, Package, Heart, MapPin, Settings, LogOut, Edit, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -138,6 +138,13 @@ export default function AccountPage() {
                   Thông tin cá nhân
                 </Link>
                 <Link
+                  href="/cart"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Giỏ hàng của tôi
+                </Link>
+                <Link
                   href="/orders"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"
                 >
@@ -151,6 +158,7 @@ export default function AccountPage() {
                   <Heart className="h-4 w-4" />
                   Sản phẩm yêu thích
                 </Link>
+
                 {/* <Link
                   href="/account"
                   className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted transition-colors"

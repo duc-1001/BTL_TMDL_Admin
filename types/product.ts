@@ -221,7 +221,7 @@ export type HomeProduct = {
     isLiked?: boolean
 }
 
-export type SimilarProduct = {
+export type BasicProductCard = {
     _id: string
     name: string
     slug: string
@@ -236,4 +236,10 @@ export type SimilarProduct = {
     badge?: string
     description?: string
     shortDescription?: string
+}
+
+export type ProductForSelect = {
+    _id: string
+    name: string
+    image?: string
 }

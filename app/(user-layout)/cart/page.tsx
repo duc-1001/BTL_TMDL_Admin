@@ -1,57 +1,57 @@
 "use client"
 
-import { useState } from "react"
 import { Trash2, Plus, Minus, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import Image from "next/image"
 import Link from "next/link"
+import { useCartActions } from "@/hooks/use-cart-actions"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
+import { useQuery } from "@tanstack/react-query"
+import { calculateCartPricing, getCart, getGuestCart } from "@/services/cart.service"
+import { formatPrice } from "@/lib/utils"
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Snack khoai tây vị BBQ",
-      price: 45000,
-      quantity: 2,
-      image: "/bbq-chips.jpg",
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const cartQueryKey = isAuthenticated
+    ? ["user-cart"]
+    : ["guest-cart"]
+  const { data, isLoading } = useQuery({
+    queryKey: cartQueryKey,
+    queryFn: () => {
+      if (isAuthenticated) {
+        return getCart()
+      }
+      else {
+        const items = JSON.parse(localStorage.getItem("guest-cart") || "[]")
+        return getGuestCart(items)
+      }
     },
-    {
-      id: 2,
-      name: "Kẹo dẻo trái cây",
-      price: 35000,
-      quantity: 1,
-      image: "/fruit-gummy-candy.jpg",
-    },
-    {
-      id: 3,
-      name: "Chocolate sữa hạt dẻ",
-      price: 75000,
-      quantity: 3,
-      image: "/hazelnut-chocolate.png",
-    },
-  ])
+  })
 
-  const [promoCode, setPromoCode] = useState("")
+  const { updateQuantity, removeItem } = useCartActions(isAuthenticated)
 
-  const updateQuantity = (id: number, change: number) => {
-    setCartItems((items) =>
-      items.map((item) => (item.id === id ? { ...item, quantity: Math.max(1, item.quantity + change) } : item)),
-    )
+  const { data: discountData } = useQuery({
+    queryKey: ["cart-pricing"],
+    queryFn: () => {
+      const items = isAuthenticated ? [] : JSON.parse(localStorage.getItem("guest-cart") || "[]")
+      const coupons = isAuthenticated ? [] : (JSON.parse(localStorage.getItem("guest-coupons") || "[]") as string[]);
+      return calculateCartPricing(items, coupons)
+    },
+  })
+
+  const totalItems = data?.items.length || 0
+  const subtotal = discountData?.subtotal || 0
+  const discountDiscount = discountData?.discountDiscount || 0
+  const total = discountData?.totalPrice || 0
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Đang tải giỏ hàng...</div>
   }
 
-  const removeItem = (id: number) => {
-    setCartItems((items) => items.filter((item) => item.id !== id))
-  }
-
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = subtotal > 200000 ? 0 : 30000
-  const discount = 0
-  const total = subtotal + shipping - discount
-
-  if (cartItems.length === 0) {
+  if (totalItems === 0) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-12">
@@ -76,12 +76,12 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cartItems.map((item) => (
-              <Card key={item.id}>
+            {data?.items.map((item) => (
+              <Card key={item.productId}>
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="relative h-24 w-24 shrink-0 rounded-lg overflow-hidden bg-muted">
-                      <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                      <img src={item.image || "/placeholder.svg"} alt={item.name}  className="object-cover h-full m-auto" />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -94,7 +94,14 @@ export default function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 bg-transparent"
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateQuantity(item.productId, item.quantity - 1)
+                              }
+                              else {
+                                removeItem(item.productId)
+                              }
+                            }}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -103,7 +110,7 @@ export default function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 bg-transparent"
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -113,7 +120,7 @@ export default function CartPage() {
                           variant="ghost"
                           size="sm"
                           className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(item.productId)}
                         >
                           <Trash2 className="h-4 w-4 mr-1" />
                           Xóa
@@ -132,7 +139,7 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div>
-            <Card className="sticky top-4">
+            <Card className="sticky top-32">
               <CardContent className="p-6">
                 <h2 className="text-xl font-bold mb-4">Tóm tắt đơn hàng</h2>
 
@@ -141,16 +148,10 @@ export default function CartPage() {
                     <span className="text-muted-foreground">Tạm tính</span>
                     <span>{subtotal.toLocaleString("vi-VN")}đ</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  {/* <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Phí vận chuyển</span>
                     <span>{shipping === 0 ? "Miễn phí" : `${shipping.toLocaleString("vi-VN")}đ`}</span>
-                  </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span>Giảm giá</span>
-                      <span>-{discount.toLocaleString("vi-VN")}đ</span>
-                    </div>
-                  )}
+                  </div> */}
                 </div>
 
                 <Separator className="my-4" />
@@ -160,22 +161,10 @@ export default function CartPage() {
                   <span className="text-primary">{total.toLocaleString("vi-VN")}đ</span>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex gap-2">
-                    <Input placeholder="Mã giảm giá" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
-                    <Button variant="outline">Áp dụng</Button>
-                  </div>
-                </div>
-
                 <Button asChild size="lg" className="w-full">
                   <Link href="/checkout">Thanh toán</Link>
                 </Button>
 
-                {shipping > 0 && (
-                  <p className="text-xs text-center text-muted-foreground mt-3">
-                    Mua thêm {(200000 - subtotal).toLocaleString("vi-VN")}đ để được miễn phí vận chuyển
-                  </p>
-                )}
               </CardContent>
             </Card>
           </div>

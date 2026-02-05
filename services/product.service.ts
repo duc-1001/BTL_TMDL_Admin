@@ -1,7 +1,7 @@
 import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { ApiResponse, PaginatedData } from "@/types/commons";
-import { BasicProductForm, BatchProductStatus, HomeProduct, Product,ProductAdmin, ProductBatch, ProductEdit, SimilarProduct } from "@/types/product";
+import { BasicProductForm, BatchProductStatus, HomeProduct, Product,ProductAdmin, ProductBatch, ProductEdit, BasicProductCard, ProductForSelect } from "@/types/product";
 
 export const createProduct = async (data: any) => {
     const formData = buildFormData(data);
@@ -69,6 +69,14 @@ export const createProductBatch = async (productId:string, data:any) => {
     return response;
 }
 
+export const getProductForSelect = async (q?: string, limit?: number, category_id?: string) => {
+    const params = { q, limit, category_id }
+    const response = await ApiClient.get<ApiResponse<ProductForSelect[]>>('/products/admin/for-select', params);
+    return response.data;
+}
+
+//user
+
 export const getHomeProducts = async (limit:number) => {
     const response = await ApiClient.get<ApiResponse<HomeProduct[]>>('/products/home',{limit});
     return response.data;
@@ -81,6 +89,6 @@ export const getProductBySlug = async (slug: string) => {
 
 export const getSimilarProducts = async (id: string, limit: number = 4) => {
     const params = { limit }
-    const response = await ApiClient.get<ApiResponse<SimilarProduct[]>>(`/products/${id}/similar`, params);
+    const response = await ApiClient.get<ApiResponse<BasicProductCard[]>>(`/products/${id}/similar`, params);
     return response.data;
 }

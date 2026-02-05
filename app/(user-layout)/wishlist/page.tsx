@@ -7,41 +7,52 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
+import { useQuery } from "@tanstack/react-query"
+import { getWishlist, removeFromWishlist } from "@/services/wishlist.service"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
+import { queryClient } from "@/components/QueryClientProviders"
+import { BasicProductCard } from "@/types/product"
 
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState([
-    {
-      id: 1,
-      name: "Snack khoai tây vị BBQ",
-      price: 45000,
-      originalPrice: 60000,
-      image: "/bbq-chips.jpg",
-      discount: 25,
-      inStock: true,
-    },
-    {
-      id: 2,
-      name: "Kẹo dẻo trái cây",
-      price: 35000,
-      originalPrice: 45000,
-      image: "/fruit-gummy-candy.jpg",
-      discount: 22,
-      inStock: true,
-    },
-    {
-      id: 3,
-      name: "Chocolate sữa hạt dẻ",
-      price: 75000,
-      originalPrice: 95000,
-      image: "/hazelnut-chocolate.png",
-      discount: 21,
-      inStock: false,
-    },
-  ])
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["wishlist-items"],
+    queryFn: getWishlist,
+    enabled: isAuthenticated,
+  })
 
-  const removeItem = (id: number) => {
-    setWishlistItems((items) => items.filter((item) => item.id !== id))
+  const removeItem = async (productId: string) => {
+    const prev = queryClient.getQueryData<BasicProductCard[]>(["wishlist-items"])
+    if (!prev?.length) return
+
+    // 1️⃣ Optimistic update
+    queryClient.setQueryData<BasicProductCard[]>(["wishlist-items"], old =>
+      old?.filter(item => item._id !== productId)
+    )
+
+    try {
+      // 2️⃣ Call API thật
+      await removeFromWishlist(productId)
+    } catch (error) {
+      // 3️⃣ Rollback
+      queryClient.setQueryData<BasicProductCard[]>(["wishlist-items"], prev)
+    }
   }
+
+
+  const wishlistItems = data || []
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-12 text-center text-muted-foreground">
+          Đang tải danh sách yêu thích...
+        </div>
+      </div>
+    )
+  }
+
 
   if (wishlistItems.length === 0) {
     return (
@@ -70,9 +81,9 @@ export default function WishlistPage() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {wishlistItems.map((item) => (
-            <Card key={item.id} className="group overflow-hidden">
+            <Card key={item._id} className="group overflow-hidden">
               <CardContent className="p-0">
-                <Link href={`/product/${item.id}`}>
+                <Link href={`/product/${item.slug}`} className="block">
                   <div className="relative aspect-square overflow-hidden bg-muted">
                     <Image
                       src={item.image || "/placeholder.svg"}
@@ -89,7 +100,7 @@ export default function WishlistPage() {
                       className="absolute top-2 left-2 bg-white/80 hover:bg-white"
                       onClick={(e) => {
                         e.preventDefault()
-                        removeItem(item.id)
+                        removeItem(item._id)
                       }}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />
@@ -98,7 +109,7 @@ export default function WishlistPage() {
                 </Link>
 
                 <div className="p-4">
-                  <Link href={`/product/${item.id}`}>
+                  <Link href={`/product/${item._id}`}>
                     <h3 className="font-medium mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {item.name}
                     </h3>
@@ -111,12 +122,12 @@ export default function WishlistPage() {
                         {item.originalPrice.toLocaleString("vi-VN")}đ
                       </span>
                     </div>
-                    {!item.inStock && <p className="text-sm text-red-500">Tạm hết hàng</p>}
+                    {item.stock === 0 && <p className="text-sm text-red-500">Tạm hết hàng</p>}
                   </div>
 
-                  <Button className="w-full" disabled={!item.inStock}>
+                  <Button className="w-full" disabled={item.stock === 0}>
                     <ShoppingCart className="h-4 w-4 mr-2" />
-                    {item.inStock ? "Thêm vào giỏ" : "Hết hàng"}
+                    {item.stock > 0 ? "Thêm vào giỏ" : "Hết hàng"}
                   </Button>
                 </div>
               </CardContent>

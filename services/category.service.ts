@@ -1,7 +1,7 @@
 import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { CategoryForm } from "@/schemas/category.schema";
-import { Category, CategoryTree, ProductCategory } from "@/types/category";
+import { Category, CategoryForSelect, CategoryTree, ProductCategory } from "@/types/category";
 import { ApiResponse } from "@/types/commons";
 
 export const createCategory = async (data: CategoryForm) => {
@@ -60,6 +60,11 @@ export const getCategories = async (parentId?: string, isFeatured?: boolean, typ
 
 export const getCategoryRootTree = async () => {
     const response = await ApiClient.get<ApiResponse<CategoryTree[]>>('/categories',{ parentId: null, type: "tree" } );
+    return response.data;
+}
+
+export const getCategoryForSelect = async () => {
+    const response = await ApiClient.get<ApiResponse<CategoryForSelect[]>>('/categories/for-select');
     return response.data;
 }
 

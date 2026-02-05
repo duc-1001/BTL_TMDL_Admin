@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { Search, Menu, Heart, User, ShoppingBag, Settings, LogOut } from "lucide-react"
+import { Search, Menu, Heart, User, ShoppingBag, Settings, LogOut, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CartSheet } from "@/components/cart-sheet"
@@ -37,6 +37,7 @@ export function Header() {
   const handleLogout = () => {
     try {
       dispatch(fetchLogout())
+      
     } catch (error) {
       console.error("Đăng xuất thất bại:", error)
     }
@@ -106,6 +107,12 @@ export function Header() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link href="/cart" className="cursor-pointer">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        <span>Giỏ hàng</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link href="/orders" className="cursor-pointer">
                         <ShoppingBag className="mr-2 h-4 w-4" />
                         <span>Đơn hàng</span>
@@ -152,7 +159,7 @@ export function Header() {
           <Link href="/categories" className={`${pathname === "/categories" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
             Danh mục
           </Link>
-          <Link href="/promotions" className={`${pathname === "/promotions" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+          <Link href="/discounts" className={`${pathname === "/discounts" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
             Khuyến mãi
           </Link>
           <Link href="/about" className={`${pathname === "/about" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>

@@ -1,8 +1,10 @@
+'use client'
 import { HeroSection } from "@/components/home/hero-section"
 import { CategoryGrid } from "@/components/home/category-grid"
 import { ProductGrid } from "@/components/home/product-grid"
 import { Features } from "@/components/features"
 import UserLayout from "@/components/layout/user/user-layout"
+import MergeCartNotify from "@/components/home/merge-cart-notify"
 
 export default function Home() {
   return (
@@ -12,6 +14,7 @@ export default function Home() {
         <CategoryGrid />
         <ProductGrid />
         <Features />
+        <MergeCartNotify />
       </main>
     </UserLayout>
   )

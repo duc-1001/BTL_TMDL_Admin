@@ -25,6 +25,15 @@ export const formatDateTimeLocal = (date?: Date) => {
     .slice(0, 16)
 }
 
+export const formatDate = (date: string | Date) => {
+  const d = new Date(date)
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
 export const formatDateTime = (date: string | Date) => {
   const d = new Date(date)
   return d.toLocaleString("vi-VN", {

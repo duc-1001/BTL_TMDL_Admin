@@ -44,13 +44,13 @@ export function CategoryGrid() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category) => (
             <Popover key={category._id}>
               <PopoverTrigger asChild>
                 <button className="w-full text-left">
                   <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-orange-500/50 overflow-hidden cursor-pointer">
-                    <CardContent className="p-5">
+                    <CardContent className="">
                       <div className="flex items-center gap-4">
                         <img src={category.image || "placeholder.svg"} alt={category.name} className="w-20 aspect-square object-contain rounded-xl group-hover:scale-110 transition-transform" />
                         <div className="flex-1">

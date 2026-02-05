@@ -9,21 +9,54 @@ import { useQuery } from "@tanstack/react-query"
 import { getHomeProducts } from "@/services/product.service"
 import { HomeProduct } from "@/types/product"
 import HomeProductCard from "../prodcuct/home-product-card"
-
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
+import { toast } from "sonner"
+import { queryClient } from "../QueryClientProviders"
+import { addToWishlist, removeFromWishlist } from "@/services/wishlist.service"
 
 export function ProductGrid() {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price)
-  }
-
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const { data } = useQuery({
     queryKey: ["home-products"],
-    queryFn: ()=>getHomeProducts(10),
+    queryFn: () => getHomeProducts(10),
   })
   const products: HomeProduct[] = data || []
+  const onToggleLikeProduct = async (productId: string) => {
+    const product = products.find(p => p._id === productId)
+    if (!product) return
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để sử dụng tính năng này!")
+      return
+    }
+
+    const isLiked = product.isLiked
+    queryClient.setQueryData<HomeProduct[]>(["home-products"], old =>
+      old?.map(p =>
+        p._id === productId
+          ? { ...p, isLiked: !isLiked }
+          : p
+      )
+    )
+
+    try {
+      if (isLiked) {
+        toast.success("Đã bỏ thích sản phẩm!")
+        await removeFromWishlist(productId)
+      } else {
+        toast.success("Đã thích sản phẩm!")
+        await addToWishlist(productId)
+      }
+    } catch (err) {
+      queryClient.setQueryData<HomeProduct[]>(["home-products"], old =>
+        old?.map(p =>
+          p._id === productId
+            ? { ...p, isLiked }
+            : p
+        )
+      )
+    }
+  }
   return (
     <section className="py-16 md:py-10 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -39,7 +72,7 @@ export function ProductGrid() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {products.map((product) => (
-            <HomeProductCard key={product._id} product={product} />
+            <HomeProductCard key={product._id} product={product} onToggleLike={onToggleLikeProduct} />
           ))}
         </div>
 

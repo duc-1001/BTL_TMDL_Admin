@@ -52,10 +52,10 @@ const navigation = [
     children:
       [
         { name: "Hero / Banner", href: "/admin/marketing/hero" },
-        { name: "Khuyến mãi", href: "/admin/marketing/promotions" },
+        { name: "Khuyến mãi", href: "/admin/marketing/discounts" },
         { name: "Email Marketing", href: "/admin/marketing/email" },
         { name: "Social khuyến mãi", href: "/admin/marketing/social" },
-        { name: "Coupon", href: "/admin/marketing/coupons" },
+        // { name: "Coupon", href: "/admin/marketing/coupons" },
       ]
     , icon: Megaphone
   },
@@ -144,7 +144,7 @@ export default function AdminSidebar() {
                         className={cn(
                           "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                           isActive
-                            ? "bg-orange-600 text-primary-foreground"
+                            ? "bg-orange-200 text-orange-700 focus:bg-orange-200 focus:text-orange-700"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground",
                         )}
                       >

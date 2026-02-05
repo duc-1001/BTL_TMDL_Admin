@@ -81,8 +81,6 @@ export default function AddNewAddress({ setIsAddDialogOpen }: AddNewAddressProps
         }
     }
 
-    console.log(errors);
-
 
     return (
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

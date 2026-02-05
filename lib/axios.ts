@@ -51,14 +51,14 @@ api.interceptors.response.use(
 
     const originalRequest: any = error.config;
     const url = originalRequest.url || "";
-
+    
     if (url.includes("/auth/me")) {
       return Promise.reject(error);
     }
+    console.log("000000",url);
 
     if (
-      error.response?.status === 401 &&
-      url?.includes("/auth/refresh-token")
+      url.includes("/auth/refresh")
     ) {
       dispatch(fetchLogout());
     }

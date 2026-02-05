@@ -17,7 +17,7 @@ const SimilarProductCard = ({ product }: SimilarProductCardProps) => {
                 <img
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="max-h-[300px] m-auto h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
                 {product.badge && <Badge className="absolute top-2 left-2 bg-orange-600">{product.badge}</Badge>}
                 {product.discount && (
