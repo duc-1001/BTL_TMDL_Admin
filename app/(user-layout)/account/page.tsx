@@ -25,9 +25,12 @@ import { fetchLogout } from "@/store/slices/authSlice"
 import { UserAddress } from "@/types/user_address"
 import EditUserAddress from "@/components/forms/user-address/edit-user-address"
 import DeleteUserAddress from "@/components/forms/user-address/delete-user-address"
+import { useSearchParams } from "next/navigation"
 
 export default function AccountPage() {
   const dispatch = useDispatch<AppDispatch>();
+  const searchParams = useSearchParams();
+  const addAddress = searchParams.get("add-address")
   const { user } = useSelector((state: RootState) => state.auth);
   const [isEditingInfo, setIsEditingInfo] = useState(false)
   const [isEditingPassword, setIsEditingPassword] = useState(false)
@@ -36,6 +39,14 @@ export default function AccountPage() {
   const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deleteAddressId, setDeleteAddressId] = useState("")
+  const [tabValue, setTabValue] = useState("profile")
+
+  useEffect(() => {
+    if (addAddress === "true") {
+      setIsAddDialogOpen(true)
+      setTabValue("addresses")
+    }
+  }, [addAddress])
 
   const handleEditAddress = (address: UserAddress) => {
     setSelectedAddress(address)
@@ -186,7 +197,7 @@ export default function AccountPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Tabs defaultValue="profile" className="space-y-6">
+            <Tabs value={tabValue}  className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
                 <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
                 <TabsTrigger value="addresses">Địa chỉ giao hàng</TabsTrigger>
@@ -287,7 +298,7 @@ export default function AccountPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <CardTitle>Địa chỉ giao hàng</CardTitle>
-                        <CardDescription>Quản lý địa chỉ nhận hàng của bạn</CardDescription>
+                        <CardDescription className="mt-2">Quản lý địa chỉ nhận hàng của bạn</CardDescription>
                       </div>
                       <Button onClick={() => setIsAddDialogOpen(true)}>Thêm địa chỉ mới</Button>
                     </div>

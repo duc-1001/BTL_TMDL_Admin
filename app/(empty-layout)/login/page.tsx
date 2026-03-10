@@ -12,12 +12,14 @@ import { useForm, Controller } from "react-hook-form"
 import { LoginForm, loginSchema } from "@/schemas/login.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
-import { googleLogin, login } from "@/services/auth.service"
-import { useRouter } from "next/navigation"
+import { login } from "@/services/auth.service"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "@/store/store"
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/';
   const dispatch = useDispatch<AppDispatch>();
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
@@ -42,7 +44,7 @@ export default function LoginPage() {
       dispatch({ type: 'auth/loginSuccess', payload: { user: response.data } });
 
       toast.success("Đăng nhập thành công")
-      router.push("/")
+      router.push(redirect)
     } catch (error) {
       toast.error("Đăng nhập thất bại. Vui lòng thử lại.")
     }

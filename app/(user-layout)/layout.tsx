@@ -12,7 +12,6 @@ export default function RootLayout({ children, }: { children: React.ReactNode })
   const router = useRouter()
   const isUserRoute = 
   pathname.startsWith('/account') || 
-  pathname.startsWith('/orders') || 
   pathname.startsWith('/wishlist')
   if (!isAuthenticated && isUserRoute) {
     toast.error("Bạn chưa đăng nhập, chuyển hướng đến trang đăng nhập")

@@ -1,225 +1,646 @@
 "use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, Eye } from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { ShoppingCart, Clock, CheckCircle2, XCircle, DollarSign, MoreVertical, Truck, Eye } from "lucide-react"
+import { useState, useMemo, } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { getOrdersAdmin, getOrderSummaryAdmin, updateBulkCancelOrderStatus, updateBulkNextOrderStatus, updateOrderStatus } from "@/services/order.service"
+import { AdminOrderListItem, AssignedStaff, OrderStatus, OrderStatusForWorkflow, PaymentStatus } from "@/types/order"
+import { formatDateTime } from "@/lib/utils"
+import useDebounce from "@/hooks/use-debounce"
+import DetailOrderAdminSheet from "@/components/order/detail-order-admin-sheet"
+import { queryClient } from "@/components/QueryClientProviders"
+import { set } from "zod"
+import { toast } from "sonner"
+import { PaginatedData } from "@/types/commons"
 import PaginationControls from "@/components/layout/pagination-controls"
 
-const orders = [
-    {
-        id: "DH001234",
-        customer: "Nguyễn Văn A",
-        phone: "0912345678",
-        amount: 250000,
-        status: "completed",
-        date: "10/01/2026",
-        items: 3,
-    },
-    {
-        id: "DH001233",
-        customer: "Trần Thị B",
-        phone: "0923456789",
-        amount: 180000,
-        status: "processing",
-        date: "10/01/2026",
-        items: 2,
-    },
-    {
-        id: "DH001232",
-        customer: "Lê Văn C",
-        phone: "0934567890",
-        amount: 320000,
-        status: "pending",
-        date: "09/01/2026",
-        items: 5,
-    },
-    {
-        id: "DH001231",
-        customer: "Phạm Thị D",
-        phone: "0945678901",
-        amount: 150000,
-        status: "completed",
-        date: "09/01/2026",
-        items: 2,
-    },
-    {
-        id: "DH001230",
-        customer: "Hoàng Văn E",
-        phone: "0956789012",
-        amount: 420000,
-        status: "cancelled",
-        date: "09/01/2026",
-        items: 4,
-    },
-    {
-        id: "DH001229",
-        customer: "Võ Thị F",
-        phone: "0967890123",
-        amount: 280000,
-        status: "shipping",
-        date: "08/01/2026",
-        items: 3,
-    },
-]
+// ============ TYPE DEFINITIONS ============
 
+const STATUS_LABEL: Record<OrderStatus, string> = {
+    pending: "Chờ xác nhận",
+    confirmed: "Đã xác nhận",
+    shipping: "Đang giao",
+    delivered: "Đã giao",
+    completed: "Hoàn tất",
+    cancelled: "Huỷ đơn",
+    refunded: "Đã hoàn tiền",
+    failed: "Giao thất bại",
+}
+
+
+
+// ============ WORKFLOW RULES ============
+const WORKFLOW_TRANSITIONS: Record<OrderStatusForWorkflow, OrderStatus[]> = {
+    pending: ["confirmed", "cancelled"],
+    confirmed: ["shipping", "cancelled"],
+    shipping: ["delivered", "failed"],
+    failed: ["shipping", "cancelled"],
+}
+
+const getValidNextStatuses = (currentStatus: OrderStatusForWorkflow): OrderStatus[] => WORKFLOW_TRANSITIONS[currentStatus] || []
+
+
+// ============ MAIN COMPONENT ============
 export default function OrdersPage() {
+    const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+    const [searchQuery, setSearchQuery] = useState("")
+    const [statusFilter, setStatusFilter] = useState<OrderStatusForWorkflow | "all">("all")
+    const [paymentStatusFilter, setPaymentStatusFilter] = useState<PaymentStatus | "all">("all")
+    const [sortBy, setSortBy] = useState("date-desc")
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
-    const totalPages = Math.ceil(orders.length / itemsPerPage)
-    
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(price)
+    const [selectedOrderDetail, setSelectedOrderDetail] = useState<AdminOrderListItem | null>(null)
+    const [sheetOpen, setSheetOpen] = useState(false)
+    const [bulkActionDialog, setBulkActionDialog] = useState<{ open: boolean; action: string }>({ open: false, action: "" })
+    const [statusChangeDialog, setStatusChangeDialog] = useState<{ open: boolean; orderCode?: string; newStatus?: OrderStatus }>({ open: false })
+    const [loadingChangeStatus, setLoadingChangeStatus] = useState(false)
+    const [loadingBulkAction, setLoadingBulkAction] = useState(false)
+
+    const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price)
+
+    const getStatusColor = (status: OrderStatus): string => {
+        const colors: Record<OrderStatus, string> = {
+            pending: "bg-yellow-100 text-yellow-800",
+            confirmed: "bg-blue-100 text-blue-800",
+            shipping: "bg-cyan-100 text-cyan-800",
+            delivered: "bg-green-100 text-green-800",
+            completed: "bg-green-100 text-green-800",
+            cancelled: "bg-red-100 text-red-800",
+            refunded: "bg-orange-100 text-orange-800",
+            failed: "bg-red-100 text-red-800",
+        }
+        return colors[status] || "bg-gray-100 text-gray-800"
     }
 
-    const getStatusBadge = (status: string) => {
-        const styles = {
-            completed: "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
-            processing: "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
-            pending: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
-            shipping: "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400",
-            cancelled: "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400",
+    const getSLAStatus = (order: AdminOrderListItem) => {
+        if (!order.slaAt || order.status !== "pending") {
+            return { color: "bg-gray-100 text-gray-500", text: "-" }
         }
-        const labels = {
-            completed: "Hoàn thành",
-            processing: "Đang xử lý",
-            pending: "Chờ xác nhận",
-            shipping: "Đang giao",
-            cancelled: "Đã hủy",
+
+        const slaTime = new Date(order.slaAt).getTime()
+
+        if (isNaN(slaTime)) {
+            return { color: "bg-gray-100 text-gray-500", text: "-" }
         }
-        return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
-                {labels[status as keyof typeof labels]}
-            </span>
+
+        const nowTime = Date.now()
+
+        const diffMs = slaTime - nowTime
+
+        if (diffMs <= 0) {
+            return { color: "bg-red-100 text-red-800", text: "Quá hạn" }
+        }
+
+        const totalMinutes = Math.floor(diffMs / 60000)
+
+        if (totalMinutes < 60) {
+            return {
+                color: "bg-red-100 text-red-800",
+                text: `${totalMinutes}p`
+            }
+        }
+
+        const hours = Math.floor(totalMinutes / 60)
+        const remainingMinutes = totalMinutes % 60
+
+        if (hours < 2) {
+            return {
+                color: "bg-yellow-100 text-yellow-800",
+                text: remainingMinutes > 0
+                    ? `${hours}h ${remainingMinutes}p`
+                    : `${hours}h`
+            }
+        }
+
+        return {
+            color: "bg-green-100 text-green-800",
+            text: remainingMinutes > 0
+                ? `${hours}h ${remainingMinutes}p`
+                : `${hours}h`
+        }
+    }
+
+    const q = useDebounce(searchQuery, 500)
+
+    const { data: ordersData, isLoading } = useQuery({
+        queryKey: ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+        queryFn: () => getOrdersAdmin(currentPage, itemsPerPage, q, statusFilter, paymentStatusFilter, sortBy),
+    })
+
+    const { data: orderSummaryData } = useQuery({
+        queryKey: ["order-summary"],
+        queryFn: () => getOrderSummaryAdmin(),
+        staleTime: 5 * 60 * 1000, // 5 phút
+    })
+
+    const paginatedOrders = useMemo(() => {
+        if (!ordersData) return []
+        return ordersData.data
+    }, [ordersData])
+
+    const totalPages = useMemo(() => {
+        if (!ordersData) return 1
+        return ordersData.pagination.totalPages
+    }, [ordersData])
+
+    const totalItems = useMemo(() => {
+        if (!ordersData) return 0
+        return ordersData.pagination.total
+    }, [ordersData])
+
+    const stats = useMemo(() => {
+        if (!orderSummaryData) return {
+            pending: 0,
+            shipping: 0,
+            completedToday: 0,
+            revenueToday: 0,
+        }
+        return {
+            pending: orderSummaryData.pending,
+            shipping: orderSummaryData.shipping,
+            completedToday: orderSummaryData.completedToday,
+            revenueToday: orderSummaryData.revenueToday,
+        }
+    }, [orderSummaryData])
+
+    const handleStatusChange = (orderCode: string, newStatus: OrderStatus) => {
+        const order = ordersData?.data.find((o) => o.orderCode === orderCode)
+        if (order && getValidNextStatuses(order.status as OrderStatusForWorkflow).includes(newStatus)) {
+            setStatusChangeDialog({ open: true, orderCode, newStatus })
+        }
+    }
+
+    const confirmBulkAction = async () => {
+        console.log(selectedOrders);
+        setLoadingBulkAction(true)
+        const action = bulkActionDialog.action
+
+        if (!selectedOrders.length) return
+
+        try {
+            let response
+
+            if (action === "next") {
+                response = await updateBulkNextOrderStatus(selectedOrders)
+            } else if (action === "cancel") {
+                response = await updateBulkCancelOrderStatus(selectedOrders)
+            } else {
+                return
+            }
+
+            const { success, failed } = response || {}
+
+            // ✅ Update cache bằng dữ liệu trả về từ backend
+            if (success && success.length > 0) {
+                queryClient.setQueryData(
+                    ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+                    (oldData: any) => {
+                        if (!oldData) return oldData
+
+                        const updatedOrders = oldData.data.map((o: AdminOrderListItem) => {
+                            const updated = success.find((s) => s._id === o._id)
+                            return updated ? updated : o
+                        })
+
+                        return { ...oldData, data: updatedOrders }
+                    }
+                )
+
+                // ✅ Hiển thị toast
+                if (success.length > 0) {
+                    toast.success(`Thành công ${success.length} đơn`)
+                }
+            }
+
+            if (failed && failed.length > 0) {
+                toast.error(`${failed.length} đơn thất bại`, {
+                    description: (
+                        <div className="whitespace-pre-line">
+                            {failed.map(f => `${f.orderCode}: ${f.reason}`).join("\n")}
+                        </div>
+                    )
+                })
+            }
+
+        } catch (error: any) {
+            toast.error("Bulk action thất bại", {
+                description: error?.message || "Có lỗi xảy ra"
+            })
+        }
+        finally {
+            setLoadingBulkAction(false)
+            setSelectedOrders([])
+            setBulkActionDialog({ open: false, action: "" })
+        }
+    }
+
+    const getStatusOptions = (currentStatus: OrderStatusForWorkflow): OrderStatus[] => {
+        return [currentStatus, ...(WORKFLOW_TRANSITIONS[currentStatus] || [])]
+    }
+
+    const handleChangeOrderStatus = async (
+        orderCode: string,
+        newStatus: OrderStatus
+    ) => {
+        try {
+            setLoadingChangeStatus(true)
+            const updatedOrder = await updateOrderStatus(orderCode, newStatus)
+
+            if (!updatedOrder) return
+
+            queryClient.setQueryData(
+                ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+                (oldData: any) => {
+                    if (!oldData) return oldData
+
+                    return {
+                        ...oldData,
+                        data: oldData.data.map((order: AdminOrderListItem) =>
+                            order.orderCode === orderCode
+                                ? {
+                                    ...order,
+                                    ...updatedOrder, // dùng data server trả về
+                                }
+                                : order
+                        ),
+                    }
+                }
+            )
+        } catch (error) {
+            console.error("Failed to update order status:", error)
+        } finally {
+            setLoadingChangeStatus(false)
+            setStatusChangeDialog({ open: false })
+        }
+    }
+
+    const handleBulkNext = () => {
+        setBulkActionDialog({ open: true, action: "next" })
+    }
+
+    const handleBulkCancel = () => {
+        setBulkActionDialog({ open: true, action: "cancel" })
+    }
+
+    const optimisticallyMarkOrderAsPaid = (orderCode: string) => {
+        queryClient.setQueryData(['orders', q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+            (oldData: PaginatedData<AdminOrderListItem>) => {
+                if (!oldData?.data) return oldData
+
+                return {
+                    ...oldData,
+                    data: oldData.data.map((order: AdminOrderListItem) =>
+                        order.orderCode === orderCode
+                            ? { ...order, paymentStatus: 'paid' }
+                            : order
+                    ),
+                }
+            })
+    }
+
+    const optimisticallyRevertOrderToUnpaid = (orderCode: string) => {
+        queryClient.setQueryData(
+            ['orders', q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+            (oldData: PaginatedData<AdminOrderListItem>) => {
+                if (!oldData) return oldData
+
+                return {
+                    ...oldData,
+                    data: oldData.data.map((order: AdminOrderListItem) =>
+                        order.orderCode === orderCode
+                            ? { ...order, paymentStatus: 'unpaid' }
+                            : order
+                    ),
+                }
+            }
         )
     }
 
-    const filterByStatus = (status: string) => {
-        if (status === "all") return orders
-        return orders.filter((order) => order.status === status)
-    }
-
-    const OrderTable = ({ orders }: { orders:any}) => (
-        <div className="overflow-x-auto">
-            <table className="w-full">
-                <thead>
-                    <tr className="border-b">
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Mã đơn</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Khách hàng</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Số điện thoại</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Số tiền</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Sản phẩm</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Trạng thái</th>
-                        <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Ngày</th>
-                        <th className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {orders.map((order:any) => (
-                        <tr key={order.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                            <td className="py-3 px-2">
-                                <Link href={`/admin/orders/${order.id}`} className="font-medium hover:text-primary">
-                                    {order.id}
-                                </Link>
-                            </td>
-                            <td className="py-3 px-2">{order.customer}</td>
-                            <td className="py-3 px-2 text-sm text-muted-foreground">{order.phone}</td>
-                            <td className="py-3 px-2 font-medium">{formatPrice(order.amount)}</td>
-                            <td className="py-3 px-2 text-sm">{order.items} sản phẩm</td>
-                            <td className="py-3 px-2">{getStatusBadge(order.status)}</td>
-                            <td className="py-3 px-2 text-sm text-muted-foreground">{order.date}</td>
-                            <td className="py-3 px-2 text-right">
-                                <Button variant="ghost" size="icon" asChild>
-                                    <Link href={`/admin/orders/${order.id}`}>
-                                        <Eye className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    )
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold mb-2">Quản lý đơn hàng</h1>
-                <p className="text-muted-foreground">Theo dõi và xử lý đơn hàng của khách hàng</p>
-            </div>
+        <div>
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">Quản lý đơn hàng</h1>
+                    <p className="text-muted-foreground">Quản lý tất cả đơn hàng từ khách hàng</p>
+                </div>
 
-            <Card>
-                <CardContent className="p-6">
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="Tìm kiếm đơn hàng..." className="pl-10" />
+                {/* Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    {[
+                        {
+                            label: "Chờ xác nhận",
+                            value: stats.pending,
+                            icon: Clock,
+                            color: "from-amber-500 to-amber-600",
+                        },
+                        {
+                            label: "Đang vận chuyển",
+                            value: stats.shipping,
+                            icon: Truck,
+                            color: "from-cyan-500 to-cyan-600",
+                        },
+                        {
+                            label: "Hoàn thành hôm nay",
+                            value: stats.completedToday,
+                            icon: CheckCircle2,
+                            color: "from-emerald-500 to-emerald-600",
+                        },
+                        {
+                            label: "Doanh thu hôm nay",
+                            value: formatPrice(stats.revenueToday),
+                            icon: DollarSign,
+                            color: "from-purple-500 to-purple-600",
+                            isPrice: true,
+                        },
+                    ].map((stat, i) => (
+                        <Card
+                            key={i}
+                            className="bg-white border hover:shadow-md transition-all duration-200"
+                        >
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">
+                                            {stat.label}
+                                        </p>
+                                        <p className="text-2xl font-semibold mt-1">
+                                            {stat.value ?? 0}
+                                        </p>
+                                    </div>
+
+                                    <div
+                                        className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} text-white shadow-sm`}
+                                    >
+                                        <stat.icon className="h-5 w-5" />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Filters & Bulk Actions */}
+                <Card className="mb-8">
+                    <CardContent className="p-6 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2  gap-3">
+                            <Input placeholder="Tìm kiếm mã đơn, số điện thoại..." value={searchQuery} onChange={(e) => {
+                                setSearchQuery(e.target.value)
+                                setCurrentPage(1)
+                            }} className="text-sm" />
+                            <div className="flex gap-3 md:justify-end">
+                                <Select value={statusFilter} onValueChange={(v) => {
+                                    setStatusFilter(v as any)
+                                    setCurrentPage(1)
+                                }}>
+                                    <SelectTrigger className="text-sm">
+                                        <SelectValue placeholder="Trạng thái" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value="all">Tất cả</SelectItem>
+                                        {(["pending", "confirmed", "packing", "shipping", "delivered", "cancelled"] as const).map((s) => (
+                                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={paymentStatusFilter} onValueChange={(v) => {
+                                    setPaymentStatusFilter(v as any)
+                                    setCurrentPage(1)
+                                }}>
+                                    <SelectTrigger className="text-sm">
+                                        <SelectValue placeholder="Thanh toán" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value="all">Tất cả</SelectItem>
+                                        {(["paid", "unpaid", "failed", "refunded"] as const).map((s) => (
+                                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Select value={sortBy} onValueChange={setSortBy}>
+                                    <SelectTrigger className="text-sm">
+                                        <SelectValue placeholder="Sắp xếp" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value="date-desc">Mới nhất</SelectItem>
+                                        <SelectItem value="date-asc">Cũ nhất</SelectItem>
+                                        <SelectItem value="amount-desc">Cao nhất</SelectItem>
+                                        <SelectItem value="amount-asc">Thấp nhất</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                        <Button variant="outline" className="bg-transparent">
-                            Xuất Excel
-                        </Button>
+
+                        {selectedOrders.length > 0 && (
+                            <div className="sticky bottom-4 z-50 flex justify-center">
+                                <div className="flex items-center gap-6 bg-white shadow-xl border border-gray-200 rounded-2xl px-6 py-4 transition-all duration-200">
+
+                                    {/* Số lượng */}
+                                    <div className="text-sm font-medium text-gray-700">
+                                        <span className="font-semibold text-gray-900">
+                                            {selectedOrders.length}
+                                        </span>{" "}
+                                        đơn đã chọn
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-3">
+
+                                        <Button
+                                            size="sm"
+                                            onClick={() => handleBulkNext()}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg shadow-sm"
+                                        >
+                                            Chuyển bước tiếp theo
+                                        </Button>
+
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleBulkCancel()}
+                                            className="text-red-600 border-red-200 hover:bg-red-50 text-xs px-4 py-2 rounded-lg"
+                                        >
+                                            Huỷ đơn hàng
+                                        </Button>
+
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Table */}
+                <Card>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b bg-slate-50">
+                                    <th className="px-4 py-3 text-left"><Checkbox checked={selectedOrders.length === paginatedOrders.length && paginatedOrders.length > 0} onCheckedChange={(checked) => setSelectedOrders(checked ? paginatedOrders.map((o) => o._id) : [])} /></th>
+                                    <th className="px-4 py-3 text-left font-semibold">Mã đơn</th>
+                                    <th className="px-4 py-3 text-left font-semibold">Khách hàng</th>
+                                    <th className="px-4 py-3 text-left font-semibold">SĐT</th>
+                                    <th className="px-4 py-3 text-left font-semibold">Ngày</th>
+                                    <th className="px-4 py-3 text-right font-semibold">Tổng</th>
+                                    <th className="px-4 py-3 text-left font-semibold">TT</th>
+                                    <th className="px-4 py-3 text-left font-semibold">Trạng thái</th>
+                                    <th className="px-4 py-3 text-left font-semibold">SLA</th>
+                                    <th className="px-4 py-3 text-center font-semibold">Chi tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {paginatedOrders.map((order) => {
+                                    const slaStatus = getSLAStatus(order)
+                                    const hasAlerts = (order.paymentStatus === "unpaid" && ["shipping", "delivered"].includes(order.status)) || !order.assignedStaff || order.paymentStatus === "failed"
+
+                                    return (
+                                        <tr key={order._id} className={`border-b hover:bg-slate-50 transition-colors ${hasAlerts ? "bg-amber-50" : ""}`}>
+                                            <td className="px-4 py-3"><Checkbox checked={selectedOrders.includes(order._id)} onCheckedChange={(checked) => setSelectedOrders(checked ? [...selectedOrders, order._id] : selectedOrders.filter((id) => id !== order._id))} /></td>
+                                            <td className="px-4 py-3 font-mono font-semibold">{order.orderCode}</td>
+                                            <td className="px-4 py-3">{order.customer.name}</td>
+                                            <td className="px-4 py-3">{order.customer.phone}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateTime(order.createdAt)}</td>
+                                            <td className="px-4 py-3 text-right font-semibold">{formatPrice(order.totalAmount)}</td>
+                                            <td className="px-4 py-3"><Badge className={order.paymentStatus === "paid" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>{order.paymentStatus === "paid" ? "Đã TT" : "Chưa TT"}</Badge></td>
+                                            <td className="px-4 py-3">
+                                                <Select
+                                                    value={order.status}
+                                                    onValueChange={(newStatus) => {
+                                                        console.log("00000", newStatus);
+                                                        handleStatusChange(order.orderCode, newStatus as OrderStatus)
+                                                    }}
+                                                >
+                                                    <SelectTrigger className={`text-xs !py-0 ${getStatusColor(order.status)}`}>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+
+                                                    <SelectContent position="popper" sideOffset={4}>
+                                                        {getStatusOptions(order.status as OrderStatusForWorkflow).map((s) => (
+                                                            <SelectItem
+                                                                key={s}
+                                                                value={s}
+                                                                disabled={s === order.status}
+                                                            >
+                                                                {STATUS_LABEL[s]}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </td>
+                                            <td className="px-4 py-3"><Badge className={slaStatus.color}>{slaStatus.text}</Badge></td>
+                                            <td className="px-4 py-3 text-center">
+                                                <div className="w-8 h-8 flex m-auto items-center justify-center rounded cursor-pointer hover:bg-gray-300" onClick={() => {
+                                                    setSelectedOrderDetail(order)
+                                                    setSheetOpen(true)
+                                                }}>
+                                                    <Eye className="h-4 w-4" />
+                                                    {/* Chi tiết */}
+                                                </div>
+                                                {/* <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                        ><DropdownMenuItem onClick={() => {
+                                                            setSelectedOrderDetail(order)
+                                                            setSheetOpen(true)
+                                                        }}>
+                                                            <Eye className="h-4 w-4 mr-2" />
+                                                            Chi tiết
+                                                        </DropdownMenuItem>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem className="text-red-600">
+                                                            <XCircle className="h-4 w-4 mr-2" />
+                                                            Hủy đơn
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu> */}
+                                            </td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
                     </div>
 
-                    <Tabs defaultValue="all">
-                        <TabsList className="mb-6">
-                            <TabsTrigger value="all">
-                                Tất cả{" "}
-                                <Badge className="ml-2" variant="secondary">
-                                    {orders.length}
-                                </Badge>
-                            </TabsTrigger>
-                            <TabsTrigger value="pending">
-                                Chờ xác nhận{" "}
-                                <Badge className="ml-2" variant="secondary">
-                                    {filterByStatus("pending").length}
-                                </Badge>
-                            </TabsTrigger>
-                            <TabsTrigger value="processing">
-                                Đang xử lý{" "}
-                                <Badge className="ml-2" variant="secondary">
-                                    {filterByStatus("processing").length}
-                                </Badge>
-                            </TabsTrigger>
-                            <TabsTrigger value="shipping">
-                                Đang giao{" "}
-                                <Badge className="ml-2" variant="secondary">
-                                    {filterByStatus("shipping").length}
-                                </Badge>
-                            </TabsTrigger>
-                            <TabsTrigger value="completed">
-                                Hoàn thành{" "}
-                                <Badge className="ml-2" variant="secondary">
-                                    {filterByStatus("completed").length}
-                                </Badge>
-                            </TabsTrigger>
-                        </TabsList>
+                    {paginatedOrders.length === 0 && (
+                        <div className="p-12 text-center text-muted-foreground">
+                            <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                            <p>Không tìm thấy đơn hàng nào</p>
+                        </div>
+                    )}
 
-                        <TabsContent value="all">
-                            <OrderTable orders={orders} />
-                        </TabsContent>
-                        <TabsContent value="pending">
-                            <OrderTable orders={filterByStatus("pending")} />
-                        </TabsContent>
-                        <TabsContent value="processing">
-                            <OrderTable orders={filterByStatus("processing")} />
-                        </TabsContent>
-                        <TabsContent value="shipping">
-                            <OrderTable orders={filterByStatus("shipping")} />
-                        </TabsContent>
-                        <TabsContent value="completed">
-                            <OrderTable orders={filterByStatus("completed")} />
-                        </TabsContent>
-                    </Tabs>
-                </CardContent>
-            </Card>
-            <PaginationControls totalPages={totalPages} currentPage={currentPage} itemsPerPage={itemsPerPage} setCurrentPage={setCurrentPage} setItemsPerPage={setItemsPerPage} totalItems={orders.length} />
+                    {/* Pagination */}
+                    <div className="mt-5 px-4">
+                        <PaginationControls
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            itemsPerPage={itemsPerPage}
+                            setCurrentPage={setCurrentPage}
+                            setItemsPerPage={setItemsPerPage}
+                            totalItems={totalItems}
+                        />
+                    </div>
+                </Card>
+
+                <DetailOrderAdminSheet
+                    optimisticallyMarkOrderAsPaid={optimisticallyMarkOrderAsPaid}
+                    optimisticallyRevertOrderToUnpaid={optimisticallyRevertOrderToUnpaid}
+                    orderCode={selectedOrderDetail?.orderCode}
+                    getStatusColor={getStatusColor}
+                    sheetOpen={sheetOpen}
+                    setSheetOpen={setSheetOpen}
+                />
+
+                {/* Status Change Dialog */}
+                <AlertDialog open={statusChangeDialog.open} onOpenChange={(open) => setStatusChangeDialog(open ? statusChangeDialog : { open: false })}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Thay đổi trạng thái</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Bạn chắc chắn muốn chuyển đơn sang <strong>{statusChangeDialog.newStatus}</strong>?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="flex gap-3">
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <AlertDialogAction disabled={loadingChangeStatus} onClick={() => {
+                                if (statusChangeDialog.orderCode && statusChangeDialog.newStatus) {
+                                    handleChangeOrderStatus(statusChangeDialog.orderCode, statusChangeDialog.newStatus)
+                                }
+                            }}>Xác nhận</AlertDialogAction>
+                        </div>
+                    </AlertDialogContent>
+                </AlertDialog>
+
+                {/* Bulk Action Dialog */}
+                <AlertDialog open={bulkActionDialog.open} onOpenChange={(open) => setBulkActionDialog(open ? bulkActionDialog : { open: false, action: "" })}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Xác nhận hành động hàng loạt</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Bạn sắp thực hiện hành động trên {selectedOrders.length} đơn hàng. Hành động này không thể hoàn tác.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="flex gap-3">
+                            <AlertDialogCancel>Hủy</AlertDialogCancel>
+                            <Button disabled={loadingBulkAction} onClick={() => {
+                                confirmBulkAction()
+                            }}>Tiếp tục</Button>
+                        </div>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </div>
         </div>
     )
 }

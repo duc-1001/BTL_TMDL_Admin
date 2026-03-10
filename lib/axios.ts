@@ -51,11 +51,10 @@ api.interceptors.response.use(
 
     const originalRequest: any = error.config;
     const url = originalRequest.url || "";
-    
+
     if (url.includes("/auth/me")) {
       return Promise.reject(error);
     }
-    console.log("000000",url);
 
     if (
       url.includes("/auth/refresh")
@@ -63,10 +62,18 @@ api.interceptors.response.use(
       dispatch(fetchLogout());
     }
 
+    const code = data?.detail?.code || null;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const LIST_OF_LOGIN_AUTH_ERRORS = [
+      "NOT_LOGGED_IN",
+      "INVALID_OR_EXPIRED_TOKEN",
+      "INVALID_TOKEN_TYPE",
+      "INVALID_TOKEN_PAYLOAD",
+      "USER_NOT_FOUND",
+    ];
+
+    if (status === 401 && LIST_OF_LOGIN_AUTH_ERRORS.includes(code) && !originalRequest._retry) {
       originalRequest._retry = true;
-
       try {
         await refreshAccessToken();
         return api(originalRequest);
@@ -78,7 +85,8 @@ api.interceptors.response.use(
     return Promise.reject({
       success: false,
       status,
-      message: data?.detail || data?.message || error.message || "An error occurred.",
+      code,
+      message: data?.detail?.message || data?.message || error.message || "An error occurred.",
       errors: data?.errors || null,
     });
   }

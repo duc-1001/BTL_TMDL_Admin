@@ -6,11 +6,12 @@ export interface CartItem {
     price: number;
     quantity: number;
     image: string;
+    availableStock: number;
+    isOutOfStock: boolean;
 }
 
 export interface Cart {
     items: CartItem[];
-    DiscountMode: "auto" | "manual";
 }
 
 export type GuestCartItem = {
@@ -20,13 +21,11 @@ export type GuestCartItem = {
 
 export type CaculateCartPricing = {
     subtotal: number;
-    discountDiscount: number;
-    couponDiscount: number;
     totalPrice: number;
     shippingFee: number;
     discount: number;
+    shippingDiscount: number;
     appliedDiscounts: AppliedDiscount[];
-    appliedCoupons: ApplyCoupon[] ;
 }
 
 export type ApplyCoupon = {

@@ -12,11 +12,15 @@ import { LoaderCircle, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateSettingBySection } from "@/services/system.service";
 import { getProvinces, getWardsByProvince, Province, Ward } from "@/lib/address";
-import { Select, SelectItem, SelectTrigger } from "../ui/select";
-import { SelectContent, SelectValue } from "@radix-ui/react-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 
-const ContactTab = () => {
+interface ContactTabProps {
+    data?: ContactSettings;
+    onUpdate: (section: string, data: ContactSettings) => void;
+}
+
+const ContactTab = ({ data, onUpdate }: ContactTabProps) => {
     const [provinces, setProvinces] = React.useState<Province[]>([])
     const [wards, setWards] = React.useState<Ward[]>([])
 
@@ -25,6 +29,7 @@ const ContactTab = () => {
     }, []);
 
     const {
+        reset,
         control,
         register,
         handleSubmit,
@@ -48,9 +53,25 @@ const ContactTab = () => {
         },
     });
 
+    useEffect(() => {
+        if (data) {
+            reset({
+                contactEmail: data.contactEmail || "",
+                contactPhone: data.contactPhone || "",
+                contactAddress: data.contactAddress || "",
+                contactMapEmbed: data.contactMapEmbed || "",
+                province: data.province || { code: "", name: "" },
+                ward: data.ward || { code: "", name: "" },
+            });
+            if (data.province?.code) {
+                getWardsByProvince(Number(data.province.code)).then(setWards);
+            }
+        }
+    }, [data, register, reset]);
+
     const onSubmit = async (data: ContactSettings) => {
         try {
-            await updateSettingBySection<ContactSettings>("contact", data);
+            await onUpdate("contact", data);
             toast.success("Cài đặt liên hệ đã được lưu thành công.");
         } catch (error) {
             toast.error("Đã có lỗi xảy ra khi lưu cài đặt liên hệ! Vui lòng thử lại.");
@@ -61,13 +82,13 @@ const ContactTab = () => {
     return (
         <TabsContent value="contact">
             <CardContent className="grid md:grid-cols-2 gap-6">
-                <FormField label="Email liên hệ" error={errors.contactEmail?.message}>
+                <FormField isRequired={true} label="Email liên hệ" error={errors.contactEmail?.message}>
                     <Input {...register("contactEmail")} />
                 </FormField>
                 <FormField label="Số điện thoại" error={errors.contactPhone?.message}>
                     <Input {...register("contactPhone")} />
                 </FormField>
-                <FormField label="Tỉnh / Thành phố" error={errors.contactPhone?.message}>
+                <FormField isRequired={true} label="Tỉnh / Thành phố" error={errors.province?.code?.message}>
                     <Controller
                             control={control}
                             name="province"
@@ -101,7 +122,7 @@ const ContactTab = () => {
                             )}
                         />
                 </FormField>
-                <FormField label="Xã / Phường" error={errors.contactPhone?.message}>
+                <FormField isRequired={true} label="Xã / Phường" error={errors.ward?.code?.message}>
                     <Controller
                         control={control}
                         name="ward"
@@ -146,10 +167,6 @@ const ContactTab = () => {
                 </FormField>
             </CardContent>
             <div className="flex justify-end gap-3 border-t p-4 mt-5">
-                <Button disabled={isSubmitting} type="button" variant="outline">
-                    <X className="h-4 w-4 mr-1" /> Hủy
-                </Button>
-
                 <Button
                     type="button"
                     disabled={isSubmitting}

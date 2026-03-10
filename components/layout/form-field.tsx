@@ -6,15 +6,17 @@ export function FormField({
     description,
     children,
     error,
+    isRequired,
 }: {
     label: string
     description?: string
     children: ReactNode
     error?: string
+    isRequired?: boolean
 }) {
     return (
         <div className="space-y-1.5">
-            <Label className="text-sm font-medium">{label}</Label>
+            <Label className="text-sm font-medium">{label}{isRequired && <span className="text-red-600">*</span>}</Label>
             {description && (
                 <p className="text-xs text-muted-foreground">{description}</p>
             )}

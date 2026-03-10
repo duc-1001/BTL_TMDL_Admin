@@ -33,8 +33,8 @@ export default function DiscountsPage() {
     })
 
     const Discounts: DiscountAdmin[] = data?.data || []
-    const totalPages = data?.totalPages || 1
-    const totalItems = data?.totalItems || 0
+    const totalPages = data?.pagination?.totalPages || 1
+    const totalItems = data?.pagination?.total || 0
 
     const [openDialog, setOpenDialog] = useState(false)
     const [openEditDialog, setOpenEditDialog] = useState(false)
@@ -79,7 +79,7 @@ export default function DiscountsPage() {
         const labels: Record<string, string> = {
             percentage: "Phần trăm",
             fixed: "Số tiền cố định",
-            free_shipping: "Miễn phí vận chuyển",
+            shipping: "Miễn phí vận chuyển",
             buy_x_get_y: "Mua X tặng Y",
         }
         return labels[type] || type

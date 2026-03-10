@@ -3,7 +3,7 @@
 import type React from "react"
 
 import Link from "next/link"
-import { Search, Menu, Heart, User, ShoppingBag, Settings, LogOut, ShoppingCart } from "lucide-react"
+import { Search, Menu, Heart, User, ShoppingBag,Tag, LogOut, ShoppingCart, LogIn, UserPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { CartSheet } from "@/components/cart-sheet"
@@ -12,10 +12,6 @@ import { usePathname, useRouter } from "next/navigation"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { logout } from "@/services/auth.service"
-import { useMutation } from "@tanstack/react-query"
-import { queryClient } from "@/components/QueryClientProviders"
-import { toast } from "sonner"
 import { useDispatch, useSelector } from "react-redux"
 import { AppDispatch, RootState } from "@/store/store"
 import { fetchLogout } from "@/store/slices/authSlice"
@@ -37,7 +33,7 @@ export function Header() {
   const handleLogout = () => {
     try {
       dispatch(fetchLogout())
-      
+
     } catch (error) {
       console.error("Đăng xuất thất bại:", error)
     }
@@ -124,12 +120,12 @@ export function Header() {
                         <span>Danh sách yêu thích</span>
                       </Link>
                     </DropdownMenuItem>
-                    {/* <DropdownMenuItem asChild>
-                      <Link href="/account" className="cursor-pointer">
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Cài đặt</span>
+                    <DropdownMenuItem asChild>
+                      <Link href="/refunds" className="cursor-pointer">
+                        <Tag className="mr-2 h-4 w-4" />
+                        <span>Yêu cầu hoàn tiền</span>
                       </Link>
-                    </DropdownMenuItem> */}
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -138,11 +134,33 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) :
-                <Button variant="ghost" size="icon" asChild className="hidden md:flex">
-                  <Link href="/login">
-                    <User className="h-5 w-5" />
-                  </Link>
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-lg">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-48" align="end" forceMount>
+                    <DropdownMenuItem asChild>
+                      <Link href="/cart" className="cursor-pointer">
+                        <ShoppingCart className="mr-2 h-4 w-4" />
+                        <span>Giỏ hàng</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/login" className="cursor-pointer">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        <span>Đăng nhập</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/signup" className="cursor-pointer">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        <span>Đăng ký</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
             }
             <CartSheet />
           </div>

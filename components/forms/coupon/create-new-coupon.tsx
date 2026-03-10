@@ -184,7 +184,7 @@ const CreateNewCoupon: React.FC<CreateNewCouponProps> = ({ setOpenDialog }: Crea
                                     <SelectContent position="popper" sideOffset={4}>
                                         <SelectItem value="percentage">Giảm theo phần trăm</SelectItem>
                                         <SelectItem value="fixed">Giảm theo số tiền cố định</SelectItem>
-                                        <SelectItem value="free_shipping">Miễn phí vận chuyển</SelectItem>
+                                        <SelectItem value="shipping">Miễn phí vận chuyển</SelectItem>
                                         <SelectItem value="buy_x_get_y">Mua X tặng Y</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -219,7 +219,7 @@ const CreateNewCoupon: React.FC<CreateNewCouponProps> = ({ setOpenDialog }: Crea
                 </div>
 
                 {/* Giá trị giảm */}
-                {selectedType !== "free_shipping" && selectedType !== "buy_x_get_y" && (
+                {selectedType !== "shipping" && selectedType !== "buy_x_get_y" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
                             <Label htmlFor="discountValue" className="font-medium">

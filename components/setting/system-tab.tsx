@@ -11,17 +11,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { LoaderCircle, Save, UploadIcon, X } from "lucide-react";
 import { uploadFile } from "@/services/upload.service";
-import { updateSettingBySection } from "@/services/system.service";
 import { SystemSettingsPayload } from "@/types/setting";
 import { toast } from "sonner";
 
 interface SystemTabProps {
     data?: SystemSettingsPayload;
+    onUpdate: (section: string, data: SystemSettingsPayload) => void;
 }
 
-const SystemTab = ({ data }: SystemTabProps) => {
-    console.log(data);
-
+const SystemTab = ({ data, onUpdate }: SystemTabProps) => {
     const {
         reset,
         register,
@@ -44,7 +42,7 @@ const SystemTab = ({ data }: SystemTabProps) => {
                 websiteDescription: data.websiteDescription || "",
             });
         }
-    }, [data, register]);
+    }, [data, reset]);
 
     const [logo, setLogo] = React.useState<File | null>(null);
     const [favicon, setFavicon] = React.useState<File | null>(null);
@@ -67,7 +65,9 @@ const SystemTab = ({ data }: SystemTabProps) => {
                 ...(socialImageData && { socialImage: socialImageData }),
             };
 
-            await updateSettingBySection<SystemSettingsPayload>("system", payload);
+            if (onUpdate) {
+                onUpdate("system", payload);
+            }
             toast.success("Cài đặt hệ thống đã được lưu thành công.");
         } catch (error) {
             toast.error("Đã có lỗi xảy ra khi lưu cài đặt hệ thống! Vui lòng thử lại.");
@@ -116,10 +116,6 @@ const SystemTab = ({ data }: SystemTabProps) => {
             </CardContent>
 
             <div className="flex justify-end gap-3 border-t p-4 mt-5">
-                <Button disabled={isSubmitting} type="button" variant="outline">
-                    <X className="h-4 w-4 mr-1" /> Hủy
-                </Button>
-
                 <Button
                     type="button"
                     disabled={isSubmitting}

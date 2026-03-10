@@ -2,6 +2,7 @@ import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { ApiResponse, PaginatedData } from "@/types/commons";
 import { BasicProductForm, BatchProductStatus, HomeProduct, Product,ProductAdmin, ProductBatch, ProductEdit, BasicProductCard, ProductForSelect } from "@/types/product";
+import { Review } from "@/types/review";
 
 export const createProduct = async (data: any) => {
     const formData = buildFormData(data);
@@ -91,4 +92,15 @@ export const getSimilarProducts = async (id: string, limit: number = 4) => {
     const params = { limit }
     const response = await ApiClient.get<ApiResponse<BasicProductCard[]>>(`/products/${id}/similar`, params);
     return response.data;
+}
+
+export const getCanReviewProduct = async (productId: string) => {
+    const response = await ApiClient.get<ApiResponse<{ canReview: boolean }>>(`/products/${productId}/can-review`);
+    return response.data;
+}
+
+export const getProductReviews = async (productId: string, page: number, limit: number) => {
+    const params = { page, limit }
+    const response = await ApiClient.get<PaginatedData<Review>>(`/products/${productId}/reviews`, params);
+    return response;
 }

@@ -1,21 +1,55 @@
-import React from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { CardContent } from "@/components/ui/card";
 import { FormField } from "@/components/layout/form-field";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ImageUpload } from "@/components/layout/image-upload";
-import { useForm } from "react-hook-form";
-import { SystemSettings, SystemSettingsSchema } from "@/schemas/system.schema";
+import { Controller, useForm } from "react-hook-form";
+import { StatusSettings, StatusSettingsSchema, } from "@/schemas/system.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { LoaderCircle, Save, UploadIcon, X } from "lucide-react";
-import { uploadFile } from "@/services/upload.service";
-import {  } from "@/services/system.service";
+import { LoaderCircle, Save, X } from "lucide-react";
+import { } from "@/services/system.service";
 import { Switch } from "../ui/switch";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
-const StatusTab = () => {
+interface StatusTabProps {
+    data?: StatusSettings;
+    onUpdate: (section: string, data: StatusSettings) => void;
+}
 
+const StatusTab = ({ data, onUpdate }: StatusTabProps) => {
+    const {
+        control,
+        reset,
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<StatusSettings>({
+        resolver: zodResolver(StatusSettingsSchema),
+        defaultValues: {
+            isSiteOnline: true,
+            maintenanceMessage: "",
+        },
+    });
+
+    useEffect(() => {
+        if (data) {
+            reset({
+                isSiteOnline: data.isSiteOnline ?? true,
+                maintenanceMessage: data.maintenanceMessage || "",
+            });
+        }
+    }, [data, reset]);
+
+    const onSubmit = async (formData: StatusSettings) => {
+        try {
+            await onUpdate("status", formData);
+            toast.success("Cập nhật cài đặt trạng thái thành công");
+        } catch (error) {
+            console.error("Failed to update status settings", error);
+            toast.error("Cập nhật cài đặt trạng thái thất bại! Vui lòng thử lại.");
+        }
+    }
 
     return (
         <TabsContent value="status">
@@ -29,13 +63,47 @@ const StatusTab = () => {
                             Bật/tắt toàn bộ website
                         </p>
                     </div>
-                    <Switch />
+                    <Controller
+                        control={control}
+                        name="isSiteOnline"
+                        render={({ field }) => (
+                            <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                        )}
+                    />
                 </div>
 
                 <FormField label="Thông báo bảo trì">
-                    <Textarea rows={3} />
+                    <Textarea rows={3} {...register("maintenanceMessage")} />
                 </FormField>
             </CardContent>
+            <div className="flex justify-end gap-3 border-t p-4 mt-5">
+                <Button disabled={isSubmitting} type="button" variant="outline">
+                    <X className="h-4 w-4 mr-1" /> Hủy
+                </Button>
+
+                <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={handleSubmit(onSubmit)}
+                    className=" cursor-pointer"
+                >
+                    {
+                        isSubmitting ?
+                            <>
+                                <LoaderCircle className="h-4 w-4 mr-1 animate-spin" />
+                                Đang lưu...
+                            </>
+                            :
+                            <>
+                                <Save className="h-4 w-4 mr-1" />
+                                Lưu cài đặt
+                            </>
+                    }
+                </Button>
+            </div>
         </TabsContent>
     );
 };

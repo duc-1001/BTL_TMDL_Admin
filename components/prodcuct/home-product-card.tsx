@@ -19,7 +19,7 @@ interface HomeProductCardProps {
 }
 
 const HomeProductCard = ({ product, onToggleLike }: HomeProductCardProps) => {
-  const {isAuthenticated} = useSelector((state: RootState) => state.auth)
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
 
   return (
     <Card key={product._id} className="group overflow-hidden hover:shadow-xl transition-all duration-300 gap-2 p-2">
@@ -31,8 +31,10 @@ const HomeProductCard = ({ product, onToggleLike }: HomeProductCardProps) => {
             className="h-[300px] m-auto object-cover group-hover:scale-110 transition-transform duration-300"
           />
           {product.badge && <Badge className="absolute top-2 left-2 bg-orange-600">{product.badge}</Badge>}
-          {product.discount && (
-            <Badge className="absolute top-2 right-2 bg-destructive">-{product.discount}%</Badge>
+          {Number(product.discount) > 0 && (
+            <Badge className="absolute top-2 right-2 bg-destructive">
+              -{product.discount}%
+            </Badge>
           )}
         </div>
       </Link>
@@ -40,8 +42,8 @@ const HomeProductCard = ({ product, onToggleLike }: HomeProductCardProps) => {
       <CardContent className="px-2 m-0">
         <div className="flex items-center gap-1 mb-2">
           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm font-medium">{product.rating || 0}</span>
-          <span className="text-sm text-muted-foreground">({product.reviewCount || 0})</span>
+          <span className="text-sm font-medium">{product?.ratingAvg || 0}</span>
+          <span className="text-sm text-muted-foreground">({product?.ratingCount || 0})</span>
         </div>
         <Link className='w-fit block ' href={`/product/${product.slug}`}>
           <h3 className="font-semibold mb-1 text-balance line-clamp-1 hover:underline hover:text-orange-500 w-fit">{product.name}</h3>

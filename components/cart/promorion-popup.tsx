@@ -54,7 +54,7 @@
 //       toast.error("Không thể chuyển sang tự động")
 //     },
 //     onSettled: () => {
-//       queryClient.invalidateQueries({ queryKey: ["cart-pricing"] })
+//       queryClient.invalidateQueries({ queryKey: ["cart-pricing"], exact: false })
 //     },
 //   })
 
@@ -69,7 +69,7 @@
 //       toast.error("Xoá khuyến mãi thất bại")
 //     },
 //     onSettled: () => {
-//       queryClient.invalidateQueries({ queryKey: ["cart-pricing"] })
+//       queryClient.invalidateQueries({ queryKey: ["cart-pricing"], exact: false })
 //     },
 //   })
 

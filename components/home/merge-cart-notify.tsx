@@ -53,7 +53,7 @@ const MergeCartNotify = () => {
                 ["user-cart"],
                 (old: Cart | undefined) => res ?? old
             )
-
+            queryClient.invalidateQueries({ queryKey: ["cart-pricing"], exact: false })
             localStorage.removeItem("guest-cart")
             localStorage.setItem("merge-cart-handled", "true")
             setShowMergeCartModal(false)

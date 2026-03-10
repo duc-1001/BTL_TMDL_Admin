@@ -45,6 +45,7 @@ const navigation = [
   { name: "Thương hiệu", href: "/admin/brands", icon: Landmark },
 
   { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
+  { name: "Hoàn trả", href: "/admin/refunds", icon: Tag },
   { name: "Khách hàng", href: "/admin/customers", icon: Users },
 
   {

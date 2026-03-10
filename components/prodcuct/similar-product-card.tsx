@@ -1,6 +1,4 @@
 import { HomeProduct } from '@/types/product'
-import Link from 'next/link'
-import React from 'react'
 import { Card, CardContent } from '../ui/card'
 import { formatPrice } from '@/lib/utils'
 import { Star } from 'lucide-react'
@@ -25,12 +23,13 @@ const SimilarProductCard = ({ product }: SimilarProductCardProps) => {
                 )}
             </div>
             <CardContent className="p-4">
-                <h3 className="font-medium mb-2 text-balance line-clamp-1">{product.name}</h3>
+                <h3 className="font-medium text-balance line-clamp-1">{product.name}</h3>
+                <h3 className="font-medium mb-2 text-sm text-muted-foreground line-clamp-1">{product.shortDescription}</h3>
                 <div className="flex items-center justify-between">
                     <span className="font-bold text-orange-500">{formatPrice(product.price)}</span>
                     <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm">{product.rating}</span>
+                        <span className="text-sm">{product?.ratingAvg || 0}</span>
                     </div>
                 </div>
             </CardContent>

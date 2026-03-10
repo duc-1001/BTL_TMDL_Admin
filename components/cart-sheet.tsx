@@ -37,8 +37,8 @@ export function CartSheet() {
     queryKey: ["cart-pricing"],
     queryFn: () => {
       const items = isAuthenticated ? [] : JSON.parse(localStorage.getItem("guest-cart") || "[]")
-      const coupons = isAuthenticated ? [] : (JSON.parse(localStorage.getItem("guest-coupons") || "[]") as string[]);
-      return calculateCartPricing(items, coupons)
+      const discounts = isAuthenticated ? [] : (JSON.parse(localStorage.getItem("guest-discounts") || "[]") as string[]);
+      return calculateCartPricing(items, discounts, { provinceCode: 0, wardCode: 0 })
     },
   })
 
@@ -86,81 +86,122 @@ export function CartSheet() {
           <>
             <div className="flex-1 overflow-y-auto -mx-6 px-6">
               <div className="space-y-4 py-4">
-                {data?.items.map((item) => (
-                  <div key={item.productId} className="flex gap-4">
-                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.name}
-                        className="h-full m-auto object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h4 className="font-medium line-clamp-2 text-balance">{item.name}</h4>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 flex-shrink-0"
-                          onClick={() => removeItem(item.productId)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                {data?.items.map((item) => {
+                  const isOutOfStock = item.isOutOfStock || item.availableStock === 0
+                  const exceedStock = item.quantity > item.availableStock
+
+                  return (
+                    <div
+                      key={item.productId}
+                      className={`flex gap-4 p-3 rounded-xl border transition ${isOutOfStock
+                          ? "bg-red-50 border-red-200"
+                          : exceedStock
+                            ? "bg-yellow-50 border-yellow-200"
+                            : "bg-white"
+                        }`}
+                    >
+                      {/* IMAGE */}
+                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0 relative">
+                        <img
+                          src={item.image || "/placeholder.svg"}
+                          alt={item.name}
+                          className={`h-full m-auto object-cover ${isOutOfStock ? "opacity-50 grayscale" : ""
+                            }`}
+                        />
+
+                        {isOutOfStock && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-semibold">
+                            Hết hàng
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-primary">{formatPrice(item.price)}</span>
-                        <div className="flex items-center border rounded-lg">
+
+                      {/* INFO */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-medium line-clamp-2">
+                            {item.name}
+                          </h4>
+
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              if (item.quantity > 1) {
-                                updateQuantity(item.productId, item.quantity - 1)
-                              }
-                              else {
-                                removeItem(item.productId)
-                              }
-                            }}
+                            className="h-8 w-8 flex-shrink-0"
+                            onClick={() => removeItem(item.productId)}
                           >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => {
-                              updateQuantity(item.productId, item.quantity + 1)
-                            }}
-                          >
-                            <Plus className="h-3 w-3" />
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-primary">
+                            {formatPrice(item.price)}
+                          </span>
+
+                          {/* QUANTITY CONTROL */}
+                          <div className="flex items-center border rounded-lg">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              disabled={isOutOfStock}
+                              onClick={() => {
+                                if (item.quantity > 1) {
+                                  updateQuantity(item.productId, item.quantity - 1)
+                                } else {
+                                  removeItem(item.productId)
+                                }
+                              }}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+
+                            <span className="w-10 text-center text-sm font-medium">
+                              {item.quantity}
+                            </span>
+
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              disabled={
+                                isOutOfStock ||
+                                item.quantity >= item.availableStock
+                              }
+                              onClick={() => {
+                                updateQuantity(item.productId, item.quantity + 1)
+                              }}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* STOCK WARNING */}
+                        {!isOutOfStock && item.availableStock <= 5 && (
+                          <p className="text-xs text-yellow-600 mt-2 flex items-center gap-1">
+                            <CircleAlert className="h-3 w-3" />
+                            Chỉ còn {item.availableStock} sản phẩm
+                          </p>
+                        )}
+
+                        {exceedStock && (
+                          <p className="text-xs text-red-600 mt-2 flex items-center gap-1">
+                            <CircleAlert className="h-3 w-3" />
+                            Số lượng vượt quá tồn kho
+                          </p>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tạm tính</span>
-                  <span className="font-medium">{formatPrice(subtotal)}</span>
-                </div>
-                {/* <div className="flex justify-between">
-                  <span className="text-muted-foreground">Phí vận chuyển</span>
-                  <span className="font-medium">{shipping === 0 ? "Miễn phí" : formatPrice(shipping)}</span>
-                </div> */}
-              </div>
-
-              <Separator />
-
+            <div className="space-y-4 pt-4">
               <div className="flex justify-between text-lg font-bold">
-                <span>Tổng cộng</span>
-                <span className="text-primary">{formatPrice(total)}</span>
+                <span>Tạm tính</span>
+                <span className="text-primary">{formatPrice(subtotal)}</span>
               </div>
 
               <div className="flex gap-2">

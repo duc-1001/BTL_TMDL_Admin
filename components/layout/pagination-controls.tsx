@@ -25,7 +25,7 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
     return (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2 text-sm ">
-                <span>Showing</span>
+                <span>Hiển thị</span>
                 <Select
                     value={itemsPerPage.toString()}
                     onValueChange={(v) => {
@@ -45,12 +45,12 @@ const PaginationControls: React.FC<PaginationControlsProps> = ({
                         ))}
                     </SelectContent>
                 </Select>
-                <span>out of {totalItems} items</span>
+                <span> trên {totalItems} sản phẩm</span>
             </div>
 
             <div className="flex items-center gap-2 z-0">
                 <span className="text-sm ">
-                    Page {currentPage} / {totalPages || 1}
+                    Trang {currentPage} / {totalPages || 1}
                 </span>
 
                 <div className="flex items-center gap-1 z-0">

@@ -95,7 +95,7 @@ const CreateNewDiscount: React.FC<CreateNewDiscountProps> = ({ setOpenDialog }: 
         try {
             await createDiscount(data);
             setOpenDialog(false);
-            queryClient.invalidateQueries({ queryKey: ['Discounts-admin'] });
+            queryClient.invalidateQueries({ queryKey: ['discounts-admin'] });
             reset();
             setSelectedProducts([]);
             toast.success("Tạo khuyến mãi thành công!");
@@ -244,7 +244,7 @@ const CreateNewDiscount: React.FC<CreateNewDiscountProps> = ({ setOpenDialog }: 
                                     <SelectContent position="popper" sideOffset={4}>
                                         <SelectItem value="percentage">Giảm theo phần trăm</SelectItem>
                                         <SelectItem value="fixed">Giảm theo số tiền cố định</SelectItem>
-                                        <SelectItem value="free_shipping">Miễn phí vận chuyển</SelectItem>
+                                        <SelectItem value="shipping">Miễn phí vận chuyển</SelectItem>
                                         <SelectItem value="buy_x_get_y">Mua X tặng Y</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -279,7 +279,7 @@ const CreateNewDiscount: React.FC<CreateNewDiscountProps> = ({ setOpenDialog }: 
                 </div>
 
                 {/* Giá trị giảm */}
-                {selectedType !== "free_shipping" && selectedType !== "buy_x_get_y" && (
+                {selectedType !== "buy_x_get_y" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
                             <Label htmlFor="discountValue" className="font-medium">

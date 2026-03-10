@@ -24,15 +24,53 @@ import LegalTab from "@/components/setting/lega-tab"
 import LocalTab from "@/components/setting/local-tab"
 import DisplayTab from "@/components/setting/display-tab"
 import StatusTab from "@/components/setting/status-tab"
-import { useQuery } from "@tanstack/react-query"
-import { getSettingBySection } from "@/services/system.service"
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { getSettingBySection, updateSettingBySection } from "@/services/system.service"
 import { SystemSettingsPayload } from "@/types/setting"
+import { ContactSettings } from "@/schemas/system.schema"
+import { queryClient } from "@/components/QueryClientProviders"
 
 export default function GeneralSettingsPage() {
   const { data: systemData } = useQuery({
     queryKey: ["settings", "system"],
     queryFn: () => getSettingBySection<SystemSettingsPayload>("system"),
   })
+
+  const { data: contactData } = useQuery({
+    queryKey: ["settings", "contact"],
+    queryFn: () => getSettingBySection<ContactSettings>("contact"),
+  })
+
+  const { data: legalData } = useQuery({
+    queryKey: ["settings", "legal"],
+    queryFn: () => getSettingBySection<any>("legal"),
+  })
+
+  const { data: localeData } = useQuery({
+    queryKey: ["settings", "locale"],
+    queryFn: () => getSettingBySection<any>("locale"),
+  })
+
+  const { data: displayData } = useQuery({
+    queryKey: ["settings", "display"],
+    queryFn: () => getSettingBySection<any>("display"),
+  })
+
+  const {data: statusData} = useQuery({
+    queryKey: ["settings", "status"],
+    queryFn: () => getSettingBySection<any>("status"),
+  })
+
+  const handleUpdateSetting = async <T extends object>(
+    section: string,
+    data: T
+  ) => {
+    return await updateSettingBySection<T>(section, data).then((updated) => {
+      queryClient.setQueryData(["settings", section], updated);
+      return updated;
+    });
+  };
+
 
   return (
     <div className="w-full">
@@ -101,17 +139,17 @@ export default function GeneralSettingsPage() {
             </TabsTrigger>
           </TabsList>
           {/* SYSTEM */}
-          <SystemTab data={systemData} />
+          <SystemTab data={systemData} onUpdate={handleUpdateSetting} />
           {/* CONTACT */}
-          <ContactTab />
+          <ContactTab data={contactData} onUpdate={handleUpdateSetting} />
           {/* LEGAL */}
-          <LegalTab />
+          <LegalTab data={legalData} onUpdate={handleUpdateSetting} />
           {/* LOCALE */}
-          <LocalTab />
+          <LocalTab data={localeData} onUpdate={handleUpdateSetting} />
           {/* DISPLAY */}
-          <DisplayTab />
+          <DisplayTab data={displayData} onUpdate={handleUpdateSetting} />
           {/* STATUS */}
-          <StatusTab />
+          <StatusTab data={statusData} onUpdate={handleUpdateSetting} />
         </Tabs>
       </Card>
     </div>

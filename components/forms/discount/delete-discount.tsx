@@ -14,7 +14,7 @@ const DeleteDiscount = ({ selectedDiscount, setDeleteDialogOpen }: DeleteDiscoun
     const deleteDiscountMutation = useMutation({
         mutationFn: deleteDiscount,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['Discounts-admin'] });
+            queryClient.invalidateQueries({ queryKey: ['discounts-admin'] });
             setDeleteDialogOpen(false);
             toast.success("Khuyến mãi đã được xóa thành công.");
         },

@@ -33,8 +33,8 @@ export default function ProductsPage() {
         queryFn: () => getAllProductsAdmin(currentPage, itemsPerPage, q),
     })
     //
-    const totalPages = productsData?.totalPages || 1
-    const totalItems = productsData?.totalItems || 0
+    const totalPages = productsData?.pagination.totalPages || 1
+    const totalItems = productsData?.pagination.total || 0
     const products = productsData?.data || []
 
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -144,7 +144,7 @@ export default function ProductsPage() {
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                                                         <img
-                                                            src={product?.images?.[0]?.url || "/placeholder.svg"}
+                                                            src={product?.image || "/placeholder.svg"}
                                                             alt={product.name}
                                                             className="w-full h-full object-cover"
                                                         />

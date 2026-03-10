@@ -67,7 +67,7 @@ export function HeroSection() {
               </Button>
 
               <Button asChild variant="outline" size="lg">
-                <Link href="/Discounts">Xem khuyến mãi</Link>
+                <Link href="/discounts">Xem khuyến mãi</Link>
               </Button>
             </div>
           </div>

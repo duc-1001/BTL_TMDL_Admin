@@ -53,7 +53,7 @@ export interface Discount {
     isFeature: boolean;
 
     // Giảm giá
-    type: DiscountType;          // percentage | fixed | free_shipping
+    type: DiscountType;          // percentage | fixed | shipping
     value: number;
     maxDiscountValue?: number;
     minOrderValue?: number;
@@ -85,6 +85,8 @@ export interface AppliedDiscount {
     name: string;
     description: string;
     amount: number;
+    type: DiscountType;
+    value: number;
 }
 
 export type DiscountAvailable = {
@@ -113,7 +115,7 @@ export type DiscountAvailable = {
 }
 
 // type cho type và status
-export type DiscountType = "percentage" | "fixed" | "buy_x_get_y" | "free_shipping"
+export type DiscountType = "percentage" | "fixed" | "buy_x_get_y" | "shipping"
 
 export type DiscountStatus = "active" | "scheduled" | "expired" | "exhausted" | "inactive"
 

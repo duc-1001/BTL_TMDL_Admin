@@ -124,7 +124,7 @@ const EditDiscount = (props: EditDiscountProps) => {
         try {
             await updateDiscount(discount._id, data);
             setOpenEditDialog(false);
-            queryClient.invalidateQueries({ queryKey: ['Discounts-admin'] });
+            queryClient.invalidateQueries({ queryKey: ['discounts-admin'] });
             reset();
             toast.success("Cập nhật khuyến mãi thành công!");
         } catch (error: any) {
@@ -270,7 +270,7 @@ const EditDiscount = (props: EditDiscountProps) => {
                                     <SelectContent position="popper" sideOffset={4}>
                                         <SelectItem value="percentage">Giảm theo phần trăm</SelectItem>
                                         <SelectItem value="fixed">Giảm theo số tiền cố định</SelectItem>
-                                        <SelectItem value="free_shipping">Miễn phí vận chuyển</SelectItem>
+                                        <SelectItem value="shipping">Miễn phí vận chuyển</SelectItem>
                                         <SelectItem value="buy_x_get_y">Mua X tặng Y</SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -305,7 +305,7 @@ const EditDiscount = (props: EditDiscountProps) => {
                 </div>
 
                 {/* Giá trị giảm */}
-                {selectedType !== "free_shipping" && selectedType !== "buy_x_get_y" && (
+                {selectedType !== "buy_x_get_y" && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div className="space-y-2">
                             <Label htmlFor="discountValue" className="font-medium">

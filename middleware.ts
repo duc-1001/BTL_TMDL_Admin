@@ -11,7 +11,6 @@ interface JwtPayload {
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("access_token")?.value;  
-  console.log(token);
   
   if (request.nextUrl.pathname.startsWith("/admin")) {
     if (!token) {

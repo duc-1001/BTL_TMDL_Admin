@@ -43,7 +43,7 @@ export interface Coupon {
 }
 
 // type cho type và status
-export type CouponType = "percentage" | "fixed" | "buy_x_get_y" | "free_shipping"
+export type CouponType = "percentage" | "fixed" | "buy_x_get_y" | "shipping"
 
 export type CouponStatus = "active" | "scheduled" | "expired" | "exhausted" | "inactive"
 

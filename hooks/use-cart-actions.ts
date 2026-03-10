@@ -8,7 +8,8 @@ import { queryClient } from '@/components/QueryClientProviders'
 import {
   addToCart,
   updateCartItemQuantity,
-  removeFromCart
+  removeFromCart,
+  clearCart
 } from '@/services/cart.service'
 import { Cart } from '@/types/cart'
 import { toast } from 'sonner'
@@ -36,11 +37,13 @@ export function useCartActions(isAuthenticated: boolean) {
         try {
           const updatedCart = await updateCartItemQuantity(productId, quantity)
           queryClient.setQueryData(queryKey, updatedCart?.cart)
-          queryClient.setQueryData(['cart-pricing'], updatedCart?.pricing)
-        } catch {
+          queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
+        } catch (error: any) {
+          toast.error(error.message || 'Có lỗi xảy ra! Vui lòng thử lại sau.')
           if (previousCartRef.current) {
             queryClient.setQueryData(queryKey, previousCartRef.current)
           }
+
         }
       },
       500
@@ -100,7 +103,7 @@ export function useCartActions(isAuthenticated: boolean) {
             items: updatedItems,
           }
         })
-        queryClient.invalidateQueries({ queryKey: ['cart-pricing'] })
+        queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
       }
     },
     [isAuthenticated, queryKey]
@@ -125,23 +128,19 @@ export function useCartActions(isAuthenticated: boolean) {
         localStorage.setItem('merge-cart-handled', 'false')
 
         queryClient.invalidateQueries({ queryKey })
-        queryClient.invalidateQueries({ queryKey: ['cart-pricing'] })
+        queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
 
-        toast.success('Đã thêm sản phẩm vào giỏ hàng!', {
-          position: 'bottom-right'
-        })
+        toast.success('Đã thêm sản phẩm vào giỏ hàng!')
         return
       }
 
       try {
         await addToCart(productId, quantity)
         queryClient.invalidateQueries({ queryKey })
-        queryClient.invalidateQueries({ queryKey: ['cart-pricing'] })
-        toast.success('Đã thêm sản phẩm vào giỏ hàng!', {
-          position: 'bottom-right'
-        })
-      } catch {
-        toast.error('Có lỗi xảy ra! Vui lòng thử lại sau.')
+        queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
+        toast.success('Đã thêm sản phẩm vào giỏ hàng!')
+      } catch (error: any) {
+        toast.error(error.message || 'Có lỗi xảy ra! Vui lòng thử lại sau.')
       }
     },
     [isAuthenticated, queryKey]
@@ -167,7 +166,7 @@ export function useCartActions(isAuthenticated: boolean) {
             items: updatedItems,
           })
           await removeFromCart(productId)
-          queryClient.invalidateQueries({ queryKey: ['cart-pricing'] })
+          queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
         } else {
           const guestCart = getGuestCart().filter(
             (item: any) => item.productId !== productId
@@ -187,9 +186,9 @@ export function useCartActions(isAuthenticated: boolean) {
               items: updatedItems,
             }
           })
-          queryClient.invalidateQueries({ queryKey: ['cart-pricing'] })
+          queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
         }
-      } catch {
+      } catch (error: any) {
         if (previousCartRef.current) {
           queryClient.setQueryData(queryKey, previousCartRef.current)
         }
@@ -198,9 +197,45 @@ export function useCartActions(isAuthenticated: boolean) {
     [isAuthenticated, queryKey]
   )
 
+  const clearCartAction = useCallback(async () => {
+    debouncedUpdateRef.current?.cancel()
+    const currentCart = queryClient.getQueryData<Cart>(queryKey)
+    if (!currentCart) return
+    previousCartRef.current = currentCart
+    try {
+      if (isAuthenticated) {
+        queryClient.setQueryData<Cart>(queryKey, {
+          ...currentCart,
+          items: [],
+        })
+        await clearCart()
+        queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
+      }
+      else {
+        localStorage.removeItem('guest-cart')
+        localStorage.removeItem('guest-discounts')
+
+        queryClient.setQueryData<Cart>(queryKey, old => {
+          if (!old) return old
+          return {
+            ...old,
+            items: [],
+          }
+        }
+        )
+        queryClient.invalidateQueries({ queryKey: ['cart-pricing'], exact: false })
+      }
+    } catch {
+      if (previousCartRef.current) {
+        queryClient.setQueryData(queryKey, previousCartRef.current)
+      }
+    }
+  }, [isAuthenticated, queryKey])
+
   return {
     addItem,
     updateQuantity,
-    removeItem
+    removeItem,
+    clearCartAction
   }
 }

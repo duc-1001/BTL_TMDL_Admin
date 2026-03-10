@@ -31,7 +31,7 @@ export const removeFromCart = async (productId: string) => {
 }
 
 export const clearCart = async () => {
-    const response = await ApiClient.delete<ApiResponse>('/cart/clear');
+    const response = await ApiClient.post<ApiResponse>('/cart/clear');
     return response.data;
 }
 
@@ -50,12 +50,13 @@ export const mergeGuestCart = async (items: GuestCartItem[]) => {
     return response.data;
 }
 
-export const calculateCartPricing = async (items: GuestCartItem[],discounts: string[]) => {
+export const calculateCartPricing = async (items: GuestCartItem[], discounts: string[], shippingAddress: { provinceCode: number, wardCode: number }) => {
     const response = await ApiClient.post<ApiResponse<CaculateCartPricing>>(
         '/cart/calculate-pricing',
         {
             items,
-            discounts
+            discounts,
+            shippingAddress
         }
     )
     return response.data;

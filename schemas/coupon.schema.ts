@@ -8,7 +8,7 @@ export const couponSchema = z.object({
     .regex(/^[A-Z0-9]+$/, "Chỉ chấp nhận chữ cái in hoa và số"),
   name: z.string().min(5, "Tên khuyến mãi phải có ít nhất 5 ký tự"),
   description: z.string().min(10, "Mô tả phải có ít nhất 10 ký tự"),
-  type: z.enum(["percentage", "fixed", "free_shipping", "buy_x_get_y"]),
+  type: z.enum(["percentage", "fixed", "shipping", "buy_x_get_y"]),
   applyTo: z.enum(["order", "product"]),
   discountValue: z
     .number()

@@ -2,9 +2,8 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Star, ShoppingCart, Heart, Minus, Plus, Share2, Truck, Shield, RefreshCw } from "lucide-react"
-import { useState } from "react"
+import { Star, Minus, Plus, Share2, Truck, Shield, RefreshCw } from "lucide-react"
+import { useRef, useState } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { getProductBySlug, getSimilarProducts } from "@/services/product.service"
@@ -19,7 +18,17 @@ import { addToWishlist, removeFromWishlist } from "@/services/wishlist.service"
 import LikeButton from "@/components/prodcuct/like-button"
 import AddToCartButton from "@/components/prodcuct/add-to-card-button"
 import { useCartActions } from "@/hooks/use-cart-actions"
+import ProductReviewSection from "@/components/prodcuct/review-section"
+import StarRating from "@/components/prodcuct/star-rating"
 
+const Spec = ({ label, value }: { label: string; value?: string }) => (
+  <div className="flex justify-between border-b border-gray-100 pb-2">
+    <span className="text-gray-500">{label}</span>
+    <span className="text-gray-800 font-medium text-right">
+      {value || "-"}
+    </span>
+  </div>
+)
 
 interface ProductPageProps {
   slug: string
@@ -28,7 +37,7 @@ interface ProductPageProps {
 export default function ProductPage({ slug }: ProductPageProps) {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const router = useRouter()
-  const { data: product, isLoading, isError } = useQuery({
+  const { data: product, isLoading: isLoadingProduct, isError } = useQuery({
     queryKey: ["product-details", slug],
     queryFn: () => getProductBySlug(slug),
     enabled: !!slug,
@@ -39,8 +48,10 @@ export default function ProductPage({ slug }: ProductPageProps) {
     queryFn: () => product ? getSimilarProducts(product._id, 5) : Promise.resolve([]),
     enabled: !!product?._id,
   })
+
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
+  const reviewSectionRef = useRef<HTMLDivElement>(null)
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -49,9 +60,9 @@ export default function ProductPage({ slug }: ProductPageProps) {
     }).format(price)
   }
   const { addItem } = useCartActions(isAuthenticated)
-  
 
-  if (isLoading) {
+
+  if (isLoadingProduct) {
     return <div>Loading...</div>
   }
 
@@ -59,6 +70,7 @@ export default function ProductPage({ slug }: ProductPageProps) {
     router.replace("/not-found")
     return null
   }
+
 
   const handleCopyLink = () => {
     const url = window.location.href
@@ -101,9 +113,28 @@ export default function ProductPage({ slug }: ProductPageProps) {
     }
   }
 
+  const handleUpdateRating = (newRating: number) => {
+    queryClient.setQueryData<Product>(["product-details", slug], old => {
+      if (!old) return old
+      const currentRating = old.ratingAvg || 0
+      const currentCount = old.ratingCount || 0
+      const newAverage = ((currentRating * currentCount) + newRating) / (currentCount + 1)
+
+      return {
+        ...old,
+        ratingAvg: newAverage,
+        ratingCount: currentCount + 1,
+        ratingBreakdown: {
+          ...old.ratingBreakdown,
+          [newRating]: (old.ratingBreakdown?.[newRating] || 0) + 1
+        }
+      }
+    })
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1">
+      <main className="flex-1 ">
         <div className="container mx-auto px-4">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -164,17 +195,9 @@ export default function ProductPage({ slug }: ProductPageProps) {
                 </div>
                 <h1 className="text-3xl md:text-4xl font-bold mb-2 text-balance">{product.name}</h1>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="flex items-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-5 w-5 ${i < Math.floor(product.rating || 0) ? "fill-yellow-400 text-yellow-400" : "fill-gray-400 text-gray-400"
-                          }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-lg font-medium">{product.rating || 0}</span>
-                  <span className="text-muted-foreground">({product.reviewCount} đánh giá)</span>
+                  <StarRating rating={product?.ratingAvg || 0} />
+                  <span className="text-lg font-medium">{product?.ratingAvg || 0}</span>
+                  <span className="text-muted-foreground">({product?.ratingCount || 0} đánh giá)</span>
                   <span className="text-muted-foreground">• Đã bán {product.soldQuantity || 0}</span>
                 </div>
                 <p className="text-lg text-muted-foreground leading-relaxed">{product.shortDescription}</p>
@@ -184,7 +207,7 @@ export default function ProductPage({ slug }: ProductPageProps) {
                 <CardContent className="p-6 py-3">
                   <div className="flex items-baseline gap-3 mb-2">
                     <span className="text-4xl font-bold text-orange-500">{formatPrice(product.price)}</span>
-                    {product.originalPrice && (
+                    {product.originalPrice && product.price < product.originalPrice && (
                       <span className="text-xl text-muted-foreground line-through">
                         {formatPrice(product.originalPrice)}
                       </span>
@@ -263,183 +286,101 @@ export default function ProductPage({ slug }: ProductPageProps) {
           </div>
 
           {/* Product Details Tabs */}
-          <Card className="mb-12">
-            <Tabs defaultValue="description" className="w-full px-2 md:px-7">
-              <TabsList className="w-full justify-start border-b  h-auto p-0 bg-transparent">
-                <TabsTrigger
-                  value="description"
-                  className=" data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
-                >
-                  Mô tả sản phẩm
-                </TabsTrigger>
-                <TabsTrigger
-                  value="specs"
-                  className=" data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
-                >
-                  Thông số
-                </TabsTrigger>
-                <TabsTrigger
-                  value="reviews"
-                  className=" data-[state=active]:border-b-2 data-[state=active]:border-orange-500"
-                >
-                  Đánh giá ({product.reviewCount || 0})
-                </TabsTrigger>
-              </TabsList>
 
-              <TabsContent value="description" className="p-6">
-                <div className="prose max-w-none">
-                  {
-                    product.description &&
-                    <>
-                      <h3 className="text-xl font-semibold mb-2">Về sản phẩm</h3>
-                      <p className="text-muted-foreground leading-relaxed mb-2">
-                        {product.description}
-                      </p></>
-                  }
-                  {product.highlights.length > 0 &&
-                    <>
-                      <h3 className="text-xl font-semibold mb-2">Điểm nổi bật</h3>
-                      <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-2">
-                        {product.highlights.map((highlight, index) => (
-                          <li key={index}>{highlight}</li>
-                        ))}
-                      </ul>
-                    </>
-                  }
-                  {
-                    product.ingredient &&
-                    <>
-                      <h3 className="text-xl font-semibold mb-2">Thành phần</h3>
-                      <p className="text-muted-foreground leading-relaxed mb-2">
-                        {product.ingredient}
-                      </p>
-                    </>
-                  }
-                  {
-                    product.allergens && product.allergens.length > 0 &&
-                    <>
-                      <h3 className="text-xl font-semibold mb-2">Chất gây dị ứng</h3>
-                      <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-2">
-                        {product.allergens.map((allergen, index) => (
-                          <li key={index}>{allergen}</li>
-                        ))}
-                      </ul>
-                    </>
-                  }
+          <Card className="p-6 mb-5">
+            {product.description && (
+              <div className="">
+                <h3 className="text-xl font-semibold mb-3">Về sản phẩm</h3>
+                <p className="text-gray-600 leading-relaxed w-full whitespace-pre-line">
+                  {product.description}
+                </p>
+              </div>
+            )}
+
+            {product.highlights?.length > 0 && (
+              <div className="">
+                <h3 className="text-xl font-semibold mb-3">Điểm nổi bật</h3>
+                <ul className="space-y-2 text-gray-600">
+                  {product.highlights.map((h, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="mt-1 h-2 w-2 rounded-full bg-orange-500 shrink-0" />
+                      <span>{h}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {product.ingredient && (
+              <div className="">
+                <h3 className="text-xl font-semibold mb-3">Thành phần</h3>
+                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                  {product.ingredient}
+                </p>
+              </div>
+            )}
+
+            {product.allergens && product.allergens?.length > 0 && (
+              <div>
+                <h3 className="text-xl font-semibold mb-3">Chất gây dị ứng</h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.allergens.map((a, i) => (
+                    <span
+                      key={i}
+                      className="px-3 py-1 text-sm bg-red-50 text-red-600 rounded-full"
+                    >
+                      {a}
+                    </span>
+                  ))}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="specs" className="p-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex justify-between py-3 border-b">
-                    <span className="font-medium">Thương hiệu</span>
-                    <span className="text-muted-foreground">{product.brand?.name}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-b">
-                    <span className="font-medium">Khối lượng</span>
-                    <span className="text-muted-foreground">{product.weight + " " + product.unit}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-b">
-                    <span className="font-medium">Xuất xứ</span>
-                    <span className="text-muted-foreground">{product.origin}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-b">
-                    <span className="font-medium">Hạn sử dụng</span>
-                    <span className="text-muted-foreground">12 tháng kể từ ngày sản xuất</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-b">
-                    <span className="font-medium">Danh mục</span>
-                    <span className="text-muted-foreground">{product.category?.name}</span>
-                  </div>
-                  <div className="flex justify-between py-3 border-b space-x-4">
-                    <span className="font-medium whitespace-nowrap">Bảo quản</span>
-                    <span className="text-muted-foreground text-end">{product.storageInstruction}</span>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="reviews" className="p-6">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-8">
-                    <div className="text-center">
-                      <div className="text-5xl font-bold text-orange-500 mb-2">{product.rating}</div>
-                      <div className="flex items-center gap-1 mb-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-5 w-5 ${i < Math.floor(product.rating || 0)
-                              ? "fill-yellow-400 text-yellow-400"
-                              : "fill-muted text-muted"
-                              }`}
-                          />
-                        ))}
-                      </div>
-                      <div className="text-sm text-muted-foreground">{product.reviewCount || 0} đánh giá</div>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      {[5, 4, 3, 2, 1].map((stars) => (
-                        <div key={stars} className="flex items-center gap-3">
-                          <span className="text-sm w-12">{stars} sao</span>
-                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-yellow-400"
-                              style={{ width: `${stars === 5 ? 70 : stars === 4 ? 20 : stars === 3 ? 8 : 2}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-muted-foreground w-12 text-right">
-                            {stars === 5 ? 90 : stars === 4 ? 26 : stars === 3 ? 10 : 2}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 pt-6 border-t">
-                    {[1, 2, 3].map((i) => (
-                      <Card key={i}>
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-orange-600/10 flex items-center justify-center font-semibold">
-                              N{i}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium">Nguyễn Văn {i === 1 ? "A" : i === 2 ? "B" : "C"}</span>
-                                <div className="flex items-center gap-1">
-                                  {[...Array(5)].map((_, j) => (
-                                    <Star key={j} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                  ))}
-                                </div>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                Sản phẩm rất ngon, giòn tan và hương vị đậm đà. Giao hàng nhanh, đóng gói cẩn thận. Sẽ
-                                ủng hộ shop tiếp!
-                              </p>
-                              <span className="text-xs text-muted-foreground">
-                                {i === 1 ? "Hôm nay" : i === 2 ? "2 ngày trước" : "1 tuần trước"}
-                              </span>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+              </div>
+            )}
+            {
+              product.tags && product.tags.length > 0 && (
+                <div>
+                  <h3 className="text-xl font-semibold mb-3">Tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.tags.map((tag, i) => (
+                      <Badge key={i} variant="outline">{tag}</Badge>
                     ))}
                   </div>
                 </div>
-              </TabsContent>
-            </Tabs>
+              )
+            }
+          </Card>
+
+          <Card className="p-6 mb-5">
+            <h3 className="text-xl font-semibold mb-6">Thông tin chi tiết</h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-4 text-sm">
+              <Spec label="Thương hiệu" value={product.brand?.name} />
+              <Spec label="Khối lượng" value={`${product.weight} ${product.unit}`} />
+              <Spec label="Xuất xứ" value={product.origin} />
+              <Spec label="Hạn sử dụng" value="12 tháng kể từ ngày sản xuất" />
+              <Spec label="Danh mục" value={product.category?.name} />
+              <Spec label="Bảo quản" value={product.storageInstruction} />
+            </div>
+          </Card>
+
+          <Card ref={reviewSectionRef} className="p-6 mb-5">
+            <ProductReviewSection product={product} reviewSectionRef={reviewSectionRef} handleUpdateRating={handleUpdateRating} />
           </Card>
 
           {/* Related Products */}
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">Sản phẩm liên quan</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {similarProducts?.map((item) => (
-                <Link key={item._id} href={`/product/${item.slug}`}>
-                  <SimilarProductCard product={item} />
-                </Link>
-              ))}
-            </div>
-          </div>
+          {
+            similarProducts && similarProducts.length > 0 && (
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold mb-6">Sản phẩm liên quan</h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {similarProducts?.map((item) => (
+                    <Link key={item._id} href={`/product/${item.slug}`}>
+                      <SimilarProductCard product={item} />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )
+          }
         </div>
       </main>
     </div>

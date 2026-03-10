@@ -12,7 +12,7 @@ const getDiscountType = (type: string) => {
             return "Giảm theo %"
         case "fixed":
             return "Giảm theo số tiền"
-        case "free_shipping":
+        case "shipping":
             return "Miễn phí vận chuyển"
         case "buy_x_get_y":
             return "Mua X tặng Y"

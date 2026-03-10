@@ -28,12 +28,16 @@ interface DiscountSelectionProps {
     showDiscountDialog: boolean
     setShowDiscountDialog: React.Dispatch<React.SetStateAction<boolean>>
     subtotal: number
+    provinceCode: number
+    wardCode: number
 }
 
 const DiscountSelection = ({
     showDiscountDialog,
     setShowDiscountDialog,
     subtotal,
+    wardCode,
+    provinceCode,
 }: DiscountSelectionProps) => {
     const { isAuthenticated } = useSelector((state: RootState) => state.auth);
     const { data, isLoading } = useQuery({
@@ -54,8 +58,13 @@ const DiscountSelection = ({
                 discounts.add(discount.code);
                 localStorage.setItem("guest-discounts", JSON.stringify(Array.from(discounts)));
             }
-            queryClient.invalidateQueries({ queryKey: ["cart-pricing"] });
-            toast.success(`Áp dụng mã giảm giá "${discount.code}" thành công`)
+            queryClient.invalidateQueries({ queryKey: ["cart-pricing"], exact: false });
+            if (discount.type === "shipping" && (provinceCode === 0 || wardCode === 0)) {
+                toast.success(`Mã giảm giá "${discount.code}" đã được lưu, sẽ áp dụng khi chọn địa chỉ giao hàng`)
+            } else {
+                toast.success(`Áp dụng mã giảm giá "${discount.code}" thành công`)
+            }
+
         } catch (error: any) {
             toast.error(error.message || "Mã giảm giá không hợp lệ hoặc không thể áp dụng")
         }
@@ -77,7 +86,7 @@ const DiscountSelection = ({
                         Đang tải danh sách mã giảm giá...
                     </p>
                 ) : discounts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-center text-muted-foreground">
                         Hiện chưa có mã giảm giá nào khả dụng.
                     </p>
                 ) : (
@@ -114,7 +123,10 @@ const DiscountSelection = ({
                                             <p className="font-bold text-purple-600">
                                                 {discount.type === "percentage"
                                                     ? `${discount.value}%`
-                                                    : formatPrice(discount.value)}
+                                                    : discount.type === "shipping"
+                                                        ? discount.value === 0 ? "Miễn phí" : `- ${formatPrice(discount.value)}`
+                                                        : `- ${formatPrice(discount.value)}`
+                                                }
                                             </p>
 
                                             {discountAmount > 0 && (
@@ -122,6 +134,7 @@ const DiscountSelection = ({
                                                     -{formatPrice(discountAmount)}
                                                 </p>
                                             )}
+
                                         </div>
                                     </div>
 

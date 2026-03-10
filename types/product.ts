@@ -1,5 +1,6 @@
 // src/types/product.ts
 
+
 export type Product = {
     _id: string
 
@@ -62,11 +63,14 @@ export type Product = {
     // ===== meta =====
     createdAt: string
     updatedAt: string,
-    rating?: number
     discount: number
-    reviewCount?: number
     badge?: string
     isLiked?: boolean
+    ratingAvg: number,
+    ratingCount: number,
+    ratingBreakdown: {
+        [key: number]: number
+    }
 }
 
 
@@ -88,9 +92,7 @@ export type ProductAdmin = {
         logo?: string
     }
 
-    images: {
-        url: string
-    }[]
+    image: string
 
     thumbnail: string
 
@@ -219,6 +221,11 @@ export type HomeProduct = {
     description?: string
     shortDescription?: string
     isLiked?: boolean
+    ratingAvg: number,
+    ratingCount: number,
+    ratingBreakdown: {
+        [key: number]: number
+    }
 }
 
 export type BasicProductCard = {
@@ -236,6 +243,11 @@ export type BasicProductCard = {
     badge?: string
     description?: string
     shortDescription?: string
+    ratingAvg: number,
+    ratingCount: number,
+    ratingBreakdown: {
+        [key: number]: number
+    }
 }
 
 export type ProductForSelect = {

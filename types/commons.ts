@@ -7,8 +7,11 @@ export interface ApiResponse<T = undefined> {
 
 
 export interface PaginatedData<T> {
-    data: T[];
-    totalPages: number;
-    totalItems: number;
-    currentPage: number;
+  "data": T[];
+  "pagination": {
+    "total": number;
+    "page": number;
+    "limit": number;
+    "totalPages": number;
+  },
 }
