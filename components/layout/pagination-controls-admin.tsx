@@ -3,7 +3,7 @@ import React from 'react'
 import { Button } from '../ui/button';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100];
+const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100];
 
 interface PaginationControlsProps {
     totalItems: number;

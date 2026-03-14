@@ -35,7 +35,7 @@ export function Features() {
               <Card key={index} className="border-2 hover:border-primary/50 transition-colors">
                 <CardContent className="p-6 text-center">
                   <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-orange-600/10 flex items-center justify-center">
-                    <Icon className="h-7 w-7 text-primary" />
+                    <Icon className="h-7 w-7 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">{feature.title}</h3>
                   <p className="text-sm text-muted-foreground text-pretty">{feature.description}</p>

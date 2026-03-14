@@ -2,18 +2,21 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { XCircle } from "lucide-react"
-import axios from "@/lib/axios"
 import { requestOrderViewToken } from "@/services/order.service"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { requestRefundViewToken } from "@/services/refund.service"
 
 interface GuestVerifyOrderProps {
-    orderCode: string
+    code: string,
+    type?: "order" | "refund"
 }
 
-export default function VerifyOrder({ orderCode }: GuestVerifyOrderProps) {
+export default function VerifyOrder({ code, type="order" }: GuestVerifyOrderProps) {
     const [email, setEmail] = useState("")
     const [loading, setLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
     const router = useRouter()
 
     const handleSubmit = async () => {
@@ -21,11 +24,23 @@ export default function VerifyOrder({ orderCode }: GuestVerifyOrderProps) {
             setLoading(true)
             setErrorMessage(null)
 
-            const data = await requestOrderViewToken(orderCode, email)
+            let data 
+            if (type === "order") {
+                data = await requestOrderViewToken(code, email)
+            }
+            else {
+                data = await requestRefundViewToken(code, email)
+            }
+
             if (!data?.viewToken) {
                 throw new Error("Không nhận được token hợp lệ.")
             }
-            router.replace(`/orders/${orderCode}?token=${data.viewToken}`)
+
+            const params = new URLSearchParams(searchParams.toString())
+            params.set("token", data.viewToken)
+
+            router.replace(`${pathname}?${params.toString()}`)
+
         } catch (err: any) {
             setErrorMessage(err?.message || "Không thể xác thực email.")
         } finally {
@@ -39,7 +54,7 @@ export default function VerifyOrder({ orderCode }: GuestVerifyOrderProps) {
                 <XCircle className="mx-auto mb-4 text-amber-500" size={48} />
 
                 <h2 className="text-2xl font-semibold text-center">
-                    Xác thực để xem đơn hàng
+                    Xác thực để xem {type === "refund" ? "yêu cầu hoàn tiền" : "đơn hàng"}
                 </h2>
 
                 <p className="text-muted-foreground mt-2 text-center">

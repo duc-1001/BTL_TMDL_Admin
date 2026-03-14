@@ -231,7 +231,7 @@ export default function EditUserAddress({ setIsEditDialogOpen, selectedAddress }
                     >
                         Hủy
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>Chỉnh sửa địa chỉ</Button>
+                    <Button className="text-white" type="submit" disabled={isSubmitting}>Chỉnh sửa địa chỉ</Button>
                 </DialogFooter>
             </form>
         </DialogContent>

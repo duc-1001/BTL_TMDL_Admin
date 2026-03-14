@@ -165,7 +165,7 @@ const OrderCard = ({ order, refetchOrders }: OrderCardProps) => {
                         asChild
                         className="flex-1 bg-transparent"
                     >
-                        <Link href={`/orders/${order.orderCode}?token=${order.viewToken}`} className="flex items-center justify-center">
+                        <Link href={`/orders/${order.orderCode}?token=${order.viewToken}&tab=detail`} className="flex items-center justify-center">
                             <Eye className="h-4 w-4 mr-2" />
                             Chi tiết
                         </Link>

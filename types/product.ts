@@ -205,7 +205,7 @@ export type ProductBatch = {
     status: "active" | "expired" | "sold_out" | "near_expiry" | "disposed",
 }
 
-export type HomeProduct = {
+export type ProductCard  = {
     _id: string
     name: string
     slug: string
@@ -223,9 +223,6 @@ export type HomeProduct = {
     isLiked?: boolean
     ratingAvg: number,
     ratingCount: number,
-    ratingBreakdown: {
-        [key: number]: number
-    }
 }
 
 export type BasicProductCard = {

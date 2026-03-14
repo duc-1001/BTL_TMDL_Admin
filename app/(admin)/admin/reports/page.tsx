@@ -119,7 +119,7 @@ export default function ReportsPage() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-2 rounded-lg bg-orange-600/10">
-                    <stat.icon className="h-5 w-5 text-primary" />
+                    <stat.icon className="h-5 w-5 text-orange-500" />
                   </div>
                   <div
                     className={`flex items-center gap-1 text-sm font-medium ${stat.trend === "up" ? "text-green-600" : "text-red-600"}`}
@@ -207,7 +207,7 @@ export default function ReportsPage() {
                 <div className="space-y-4">
                   {topProducts.map((product, index) => (
                     <div key={product.name} className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600/10 text-primary font-bold">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600/10 text-orange-500 font-bold">
                         {index + 1}
                       </div>
                       <div className="flex-1">
@@ -273,7 +273,7 @@ export default function ReportsPage() {
                         key={customer.name}
                         className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0"
                       >
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600/10 text-primary font-bold">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-orange-600/10 text-orange-500 font-bold">
                           {index + 1}
                         </div>
                         <div className="flex-1">

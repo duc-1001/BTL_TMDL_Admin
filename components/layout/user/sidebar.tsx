@@ -74,7 +74,7 @@ export default function UserSidebar() {
                     <SidebarGroup>
                         <SidebarHeader className="text-2xl font-bold border-b">
                             <Link href="/" className="flex items-center gap-2 px-4 py-3">
-                                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-primary-foreground font-bold text-lg">
+                                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center text-orange-500-foreground font-bold text-lg">
                                     🍿
                                 </div>
                                 Snack Việt
@@ -111,7 +111,7 @@ export default function UserSidebar() {
                                                 <Link href={item.href} className={cn(
                                                     "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                                                     isActive
-                                                        ? "bg-orange-600 text-primary-foreground hover:!bg-orange-600 hover:!text-primary-foreground"
+                                                        ? "bg-orange-600 text-orange-500-foreground hover:!bg-orange-600 hover:!text-orange-500-foreground"
                                                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                                                 )}>
                                                     <Icon className="!h-5 !w-5" />

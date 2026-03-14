@@ -10,9 +10,12 @@ import { Discount } from "@/types/discount"
 import { useState } from "react"
 import DiscountCard from "@/components/discount/discount-card"
 import DiscountDetail from "@/components/discount/discount-detail"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store/store"
 
 
 export default function DiscountsPage() {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const [showDetailDiscountDialog, setShowDetailDiscountDialog] = useState(false)
   const [selectedDiscount, setSelectedDiscount] = useState<Discount | null>(null)
 
@@ -72,7 +75,7 @@ export default function DiscountsPage() {
       )}
 
       {
-        regular.length  > 0 && (
+        regular.length > 0 && (
           <section className="py-16">
             <div className="container mx-auto px-4">
               <div className="flex items-center gap-3 mb-8">
@@ -89,36 +92,37 @@ export default function DiscountsPage() {
         )
       }
 
-
-      <section className="py-20 bg-gradient-to-br from-orange-500/10 via-background to-orange-500/5">
-        <div className="container mx-auto px-4">
-          <Card className="border-2 border-orange-500/20 overflow-hidden bg-gradient-to-br from-background to-muted/50">
-            <CardContent className="p-8 md:p-16">
-              <div className="max-w-3xl mx-auto text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/10 mb-6">
-                  <Gift className="h-8 w-8 text-orange-500" />
+      {
+        !isAuthenticated && <section className="py-20 bg-gradient-to-br from-orange-500/10 via-background to-orange-500/5">
+          <div className="container mx-auto px-4">
+            <Card className="border-2 border-orange-500/20 overflow-hidden bg-gradient-to-br from-background to-muted/50">
+              <CardContent className="p-8 md:p-16">
+                <div className="max-w-3xl mx-auto text-center">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/10 mb-6">
+                    <Gift className="h-8 w-8 text-orange-500" />
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">Đăng ký nhận thông báo ưu đãi</h2>
+                  <p className="text-lg text-muted-foreground mb-8 leading-relaxed text-pretty">
+                    Không bỏ lỡ bất kỳ chương trình khuyến mãi nào. Đăng ký tài khoản để nhận thông báo về các ưu đãi mới
+                    nhất qua email
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button size="lg" asChild className="text-white">
+                      <Link href="/signup" >
+                        Đăng ký ngay
+                        <Check className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild>
+                      <Link href="/products">Mua sắm ngay</Link>
+                    </Button>
+                  </div>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-balance">Đăng ký nhận thông báo ưu đãi</h2>
-                <p className="text-lg text-muted-foreground mb-8 leading-relaxed text-pretty">
-                  Không bỏ lỡ bất kỳ chương trình khuyến mãi nào. Đăng ký tài khoản để nhận thông báo về các ưu đãi mới
-                  nhất qua email
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" asChild>
-                    <Link href="/signup">
-                      Đăng ký ngay
-                      <Check className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link href="/products">Mua sắm ngay</Link>
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      }
 
       {showDetailDiscountDialog && selectedDiscount && (
         <DiscountDetail selectedDiscount={selectedDiscount} showDetailDiscountDialog={showDetailDiscountDialog} setShowDetailDiscountDialog={setShowDetailDiscountDialog} />

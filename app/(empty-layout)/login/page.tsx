@@ -121,12 +121,12 @@ export default function LoginPage() {
                   Ghi nhớ đăng nhập
                 </Label>
               </div>
-              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+              <Link href="/forgot-password" className="text-sm text-orange-500 hover:underline">
                 Quên mật khẩu?
               </Link>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full text-white" size="lg" disabled={isSubmitting}>
               Đăng nhập
             </Button>
           </form>
@@ -167,7 +167,7 @@ export default function LoginPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Chưa có tài khoản?{" "}
-            <Link href="/signup" className="text-primary font-medium hover:underline">
+            <Link href="/signup" className="text-orange-500 font-medium hover:underline">
               Đăng ký ngay
             </Link>
           </p>

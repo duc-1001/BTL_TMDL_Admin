@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Eye } from "lucide-react"
 import Link from "next/link"
-import PaginationControls from "@/components/layout/pagination-controls"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 import { useState } from "react"
 
 const customers = [

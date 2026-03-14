@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -23,13 +23,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -39,122 +32,78 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Separator } from "@/components/ui/separator"
 import {
   Eye,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
-  User,
-  Phone,
-  Mail,
-  Package,
-  Calendar,
+  MoreVertical
 } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { adminGetRefunds } from "@/services/refund.service"
+import useDebounce from "@/hooks/use-debounce"
+import { useRouter } from "next/navigation"
+import { ReasonCode, RefundAdminListItem, RefundStatus } from "@/types/refund"
+import { formatTimeAgo } from "@/lib/time"
+import { REFUND_REASONS } from "@/components/refund/refund-form"
+import DetailAdminRefundSheet from "@/components/refund/detail-admin-refund-sheet"
 
-// ────────────────────────────────────────────────
-// TYPES
-// ────────────────────────────────────────────────
-
-type RefundStatus = "pending" | "processing" | "completed" | "rejected"
-type RefundReason = "customer_request" | "defective" | "not_received" | "wrong_item" | "changed_mind"
-
-interface RefundItem {
-  name: string
-  qty: number
-  price: number
-}
-
-interface Refund {
-  id: string
-  orderId: string
-  customer: string
-  phone: string
-  email: string
-  amount: number
-  reason: RefundReason
-  status: RefundStatus
-  createdAt: Date
-  processedAt?: Date
-  items: RefundItem[]
-  notes: string
-  refundMethod: "original" | "wallet" | "bank"
-}
-
-// ────────────────────────────────────────────────
-// LABELS & MOCK DATA
-// ────────────────────────────────────────────────
-
-const reasonLabels: Record<RefundReason, string> = {
-  customer_request: "Yêu cầu từ khách",
-  defective: "Sản phẩm hư hỏng",
-  not_received: "Chưa nhận được hàng",
-  wrong_item: "Gửi nhầm sản phẩm",
-  changed_mind: "Đổi ý",
-}
-
-const statusLabels: Record<RefundStatus, string> = {
+export const statusLabels: Record<RefundStatus, string> = {
   pending: "Chờ xử lý",
   processing: "Đang xử lý",
   completed: "Hoàn tất",
   rejected: "Từ chối",
+  cancelled: "Đã hủy",
 }
 
-const statusColors: Record<RefundStatus, string> = {
+export const statusColors: Record<RefundStatus, string> = {
   pending: "bg-yellow-100 text-yellow-800",
   processing: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
   rejected: "bg-red-100 text-red-800",
+  cancelled: "bg-gray-100 text-gray-800",
 }
 
-const refundMethodLabels: Record<string, string> = {
-  original: "Hoàn nguyên",
-  wallet: "Ví điện tử",
-  bank: "Chuyển khoản",
-}
-
-function generateMockRefunds(): Refund[] {
-  const reasons: RefundReason[] = ["customer_request", "defective", "not_received", "wrong_item", "changed_mind"]
-  const statuses: RefundStatus[] = ["pending", "processing", "completed", "rejected"]
-  const customers = ["Nguyễn Văn A", "Trần Thị B", "Phạm Văn C", "Hoàng Thị D", "Lê Văn E"]
-  const methods = ["original", "wallet", "bank"] as const
-
-  return Array.from({ length: 20 }, (_, i) => {
-    const createdAt = new Date()
-    createdAt.setDate(createdAt.getDate() - Math.floor(Math.random() * 30))
-
-    return {
-      id: `REF${String(i + 1).padStart(5, "0")}`,
-      orderId: `ORD-2024-${String(i + 1).padStart(3, "0")}`,
-      customer: customers[Math.floor(Math.random() * customers.length)],
-      phone: `09${Math.floor(10000000 + Math.random() * 90000000)}`,
-      email: `khach${i + 1}@example.com`,
-      amount: Math.floor(50000 + Math.random() * 2000000),
-      reason: reasons[Math.floor(Math.random() * reasons.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      createdAt,
-      processedAt: Math.random() > 0.5 ? new Date(createdAt.getTime() + Math.random() * 5 * 86400000) : undefined,
-      items: [
-        { name: "Snack khoai tây BBQ", qty: 1, price: 45000 },
-        { name: "Kẹo dẻo trái cây", qty: 2, price: 35000 },
-      ],
-      notes: i % 4 === 0 ? "Sản phẩm lỗi bao bì" : "",
-      refundMethod: methods[Math.floor(Math.random() * methods.length)],
-    }
-  })
-}
-
-// ────────────────────────────────────────────────
-// MAIN COMPONENT
-// ────────────────────────────────────────────────
 
 export default function RefundsPage() {
-  const [refunds, setRefunds] = useState<Refund[]>(generateMockRefunds())
+  const router = useRouter()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<RefundStatus | "all">("all")
-  const [reasonFilter, setReasonFilter] = useState<RefundReason | "all">("all")
+  const [reasonFilter, setReasonFilter] = useState<ReasonCode | "all">("all")
+  const [page, setPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(20)
 
-  const [selected, setSelected] = useState<Refund | null>(null)
+  const q = useDebounce(search, 500)
+
+  const { data, error } = useQuery({
+    queryKey: ["adminRefunds", q, statusFilter, reasonFilter, page, itemsPerPage],
+    queryFn: async () => adminGetRefunds(q, statusFilter, reasonFilter, page, itemsPerPage),
+  })
+
+  useEffect(() => {
+    if (error) {
+      const errCode = (error as any)?.code
+      if (errCode === "UNAUTHORIZED" || errCode === "PERMISSION_DENIED") {
+        router.push("/login")
+      }
+    }
+  }, [error])
+
+  // Filtering & Pagination
+
+  const totalPages = useMemo(() => {
+    if (!data) return 1
+    return data.pagination.totalPages
+  }, [data])
+
+  const totalItems = useMemo(() => {
+    if (!data) return 0
+    return data.pagination.total
+  }, [data])
+
+  const refunds = useMemo(() => {
+    if (!data) return []
+    return data.data
+  }, [data])
+
+  const [selected, setSelected] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
   const [confirmAction, setConfirmAction] = useState<{
@@ -162,52 +111,23 @@ export default function RefundsPage() {
     refundId: string
   } | null>(null)
 
-  const [page, setPage] = useState(1)
-  const itemsPerPage = 10
-
   const formatVND = (num: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num)
 
-  // Filtering & Pagination
-  const filtered = useMemo(() => {
-    return refunds.filter((r) => {
-      const matchSearch =
-        r.id.toLowerCase().includes(search.toLowerCase()) ||
-        r.orderId.toLowerCase().includes(search.toLowerCase()) ||
-        r.customer.toLowerCase().includes(search.toLowerCase()) ||
-        r.phone.includes(search)
-
-      const matchStatus = statusFilter === "all" || r.status === statusFilter
-      const matchReason = reasonFilter === "all" || r.reason === reasonFilter
-
-      return matchSearch && matchStatus && matchReason
-    })
-  }, [refunds, search, statusFilter, reasonFilter])
-
-  const paginated = useMemo(() => {
-    const start = (page - 1) * itemsPerPage
-    return filtered.slice(start, start + itemsPerPage)
-  }, [filtered, page])
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage)
-
   // Stats
-  const stats = useMemo(() => ({
-    total: refunds.length,
-    pending: refunds.filter((r) => r.status === "pending").length,
-    completed: refunds.filter((r) => r.status === "completed").length,
-    totalAmount: refunds.reduce((sum, r) => sum + r.amount, 0),
-  }), [refunds])
+  const stats = useMemo(() => {
+    if (!data) return { total: 0, pending: 0, completed: 0, totalAmount: 0 }
+    const total = data.pagination.total
+    const pending = data.data.filter((r) => r.status === "pending").length
+    const completed = data.data.filter((r) => r.status === "completed").length
+    const totalAmount = data.data.reduce((sum, r) => sum + r.totalRefund, 0)
+    return { total, pending, completed, totalAmount }
+  }, [data])
 
   // Status Actions
   const updateStatus = (id: string, newStatus: RefundStatus) => {
-    setRefunds((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? { ...r, status: newStatus, processedAt: new Date() }
-          : r
-      )
-    )
+    if (!confirmAction) return
+    if(newStatus === "processing") handleProcess(id)
     setConfirmAction(null)
   }
 
@@ -232,7 +152,7 @@ export default function RefundsPage() {
           <StatCard title="Tổng yêu cầu" value={stats.total} />
           <StatCard title="Chờ xử lý" value={stats.pending} color="text-yellow-600" />
           <StatCard title="Hoàn tất" value={stats.completed} color="text-green-600" />
-          <StatCard title="Tổng tiền" value={formatVND(stats.totalAmount)} color="text-primary" />
+          <StatCard title="Tổng tiền" value={formatVND(stats.totalAmount)} color="text-orange-500" />
         </div>
 
         {/* Filters */}
@@ -258,13 +178,13 @@ export default function RefundsPage() {
                 <SelectTrigger className="w-44">
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" sideOffset={4}>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  {Object.keys(statusLabels).map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {statusLabels[s as RefundStatus]}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="pending">Chờ xử lý</SelectItem>
+                  <SelectItem value="processing">Đang xử lý</SelectItem>
+                  <SelectItem value="completed">Hoàn tất</SelectItem>
+                  <SelectItem value="rejected">Từ chối</SelectItem>
+                  <SelectItem value="cancelled">Đã hủy</SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -277,11 +197,11 @@ export default function RefundsPage() {
                 <SelectTrigger className="w-44">
                   <SelectValue placeholder="Lý do" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent position="popper" sideOffset={4}>
                   <SelectItem value="all">Tất cả lý do</SelectItem>
-                  {Object.keys(reasonLabels).map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {reasonLabels[r as RefundReason]}
+                  {REFUND_REASONS.map((r) => (
+                    <SelectItem key={r.code} value={r.code}>
+                      {r.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -307,17 +227,17 @@ export default function RefundsPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginated.map((refund) => (
-                  <tr key={refund.id} className="border-b hover:bg-muted/40 transition-colors">
-                    <td className="px-4 py-3 font-medium">{refund.id}</td>
-                    <td className="px-4 py-3">{refund.orderId}</td>
+                {refunds.map((refund) => (
+                  <tr key={refund._id} className="border-b hover:bg-muted/40 transition-colors">
+                    <td className="px-4 py-3 font-medium">{refund.refundCode}</td>
+                    <td className="px-4 py-3">{refund.orderCode}</td>
                     <td className="px-4 py-3">
-                      <div className="font-medium">{refund.customer}</div>
-                      <div className="text-xs text-muted-foreground">{refund.phone}</div>
+                      <div className="font-medium">{refund.customer?.fullName}</div>
+                      <div className="text-xs text-muted-foreground">{refund.customer?.phone}</div>
                     </td>
-                    <td className="px-4 py-3">{reasonLabels[refund.reason]}</td>
+                    <td className="px-4 py-3">{refund.reason}</td>
                     <td className="px-4 py-3 text-right font-semibold">
-                      {formatVND(refund.amount)}
+                      {formatVND(refund.totalRefund)}
                     </td>
                     <td className="px-4 py-3">
                       <Badge className={statusColors[refund.status]}>
@@ -325,7 +245,7 @@ export default function RefundsPage() {
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {refund.createdAt.toLocaleDateString("vi-VN")}
+                      {formatTimeAgo(refund.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <DropdownMenu>
@@ -337,7 +257,7 @@ export default function RefundsPage() {
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuItem
                             onClick={() => {
-                              setSelected(refund)
+                              setSelected(refund._id)
                               setSheetOpen(true)
                             }}
                           >
@@ -348,12 +268,12 @@ export default function RefundsPage() {
 
                           {refund.status === "pending" && (
                             <>
-                              <DropdownMenuItem onClick={() => setConfirmAction({ type: "process", refundId: refund.id })}>
+                              <DropdownMenuItem onClick={() => setConfirmAction({ type: "process", refundId: refund._id })}>
                                 Bắt đầu xử lý
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600 focus:text-red-600"
-                                onClick={() => setConfirmAction({ type: "reject", refundId: refund.id })}
+                                onClick={() => setConfirmAction({ type: "reject", refundId: refund._id })}
                               >
                                 Từ chối
                               </DropdownMenuItem>
@@ -362,12 +282,12 @@ export default function RefundsPage() {
 
                           {refund.status === "processing" && (
                             <>
-                              <DropdownMenuItem onClick={() => setConfirmAction({ type: "complete", refundId: refund.id })}>
+                              <DropdownMenuItem onClick={() => setConfirmAction({ type: "complete", refundId: refund._id })}>
                                 Hoàn tất hoàn tiền
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600 focus:text-red-600"
-                                onClick={() => setConfirmAction({ type: "reject", refundId: refund.id })}
+                                onClick={() => setConfirmAction({ type: "reject", refundId: refund._id })}
                               >
                                 Từ chối
                               </DropdownMenuItem>
@@ -389,195 +309,15 @@ export default function RefundsPage() {
           </div>
 
           {/* Pagination */}
-          {filtered.length > 0 && (
-            <div className="flex items-center justify-between border-t px-4 py-3">
-              <p className="text-sm text-muted-foreground">
-                Hiển thị {(page - 1) * itemsPerPage + 1} – {Math.min(page * itemsPerPage, filtered.length)} / {filtered.length}
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  <ChevronLeft className="mr-1 h-4 w-4" /> Trước
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Tiếp <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
         </Card>
 
         {/* Detail Sheet */}
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent className="w-full sm:max-w-2xl lg:max-w-3xl overflow-y-auto">
-            {selected && (
-              <>
-                <SheetHeader className="mb-6">
-                  <SheetTitle className="text-2xl">{selected.id}</SheetTitle>
-                  <SheetDescription>Chi tiết yêu cầu hoàn tiền</SheetDescription>
-                </SheetHeader>
-
-                <div className="space-y-6">
-                  {/* Status & Quick Actions */}
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <Badge className={`${statusColors[selected.status]} px-4 py-1 text-base`}>
-                      {statusLabels[selected.status]}
-                    </Badge>
-
-                    <div className="flex flex-wrap gap-2">
-                      {selected.status === "pending" && (
-                        <>
-                          <Button
-                            variant="outline"
-                            className="border-red-200 text-red-700 hover:bg-red-50"
-                            onClick={() => setConfirmAction({ type: "reject", refundId: selected.id })}
-                          >
-                            Từ chối
-                          </Button>
-                          <Button onClick={() => setConfirmAction({ type: "process", refundId: selected.id })}>
-                            Bắt đầu xử lý
-                          </Button>
-                        </>
-                      )}
-
-                      {selected.status === "processing" && (
-                        <>
-                          <Button
-                            variant="outline"
-                            className="border-red-200 text-red-700 hover:bg-red-50"
-                            onClick={() => setConfirmAction({ type: "reject", refundId: selected.id })}
-                          >
-                            Từ chối
-                          </Button>
-                          <Button onClick={() => setConfirmAction({ type: "complete", refundId: selected.id })}>
-                            Hoàn tất
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Mã đơn hàng</p>
-                      <p className="font-semibold">{selected.orderId}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Lý do</p>
-                      <p className="font-semibold">{reasonLabels[selected.reason]}</p>
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="h-4 w-4" /> Khách hàng
-                    </p>
-                    <div className="rounded-lg bg-muted/40 p-4 text-sm space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        {selected.phone}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        {selected.email}
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Items */}
-                  <div>
-                    <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-                      <Package className="h-4 w-4" /> Sản phẩm
-                    </p>
-                    <div className="space-y-3">
-                      {selected.items.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between rounded-lg bg-muted/30 p-3"
-                        >
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-xs text-muted-foreground">×{item.qty}</p>
-                          </div>
-                          <p className="font-semibold">{formatVND(item.price * item.qty)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 p-5">
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-muted-foreground">Số tiền hoàn</span>
-                      <span className="text-2xl font-bold text-primary">
-                        {formatVND(selected.amount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Phương thức</span>
-                      <Badge variant="outline">{refundMethodLabels[selected.refundMethod]}</Badge>
-                    </div>
-                  </div>
-
-                  {selected.notes && (
-                    <>
-                      <Separator />
-                      <div>
-                        <p className="mb-2 text-sm text-muted-foreground">Ghi chú</p>
-                        <p className="rounded-lg bg-muted/50 p-3 text-sm">{selected.notes}</p>
-                      </div>
-                    </>
-                  )}
-
-                  <Separator />
-
-                  {/* Timeline */}
-                  <div>
-                    <p className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" /> Lịch sử
-                    </p>
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between rounded-lg bg-muted/30 p-3">
-                        <span>Tạo yêu cầu</span>
-                        <span className="text-muted-foreground">
-                          {selected.createdAt.toLocaleString("vi-VN", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </span>
-                      </div>
-                      {selected.processedAt && (
-                        <div className="flex justify-between rounded-lg bg-muted/30 p-3">
-                          <span>Cập nhật trạng thái</span>
-                          <span className="text-muted-foreground">
-                            {selected.processedAt.toLocaleString("vi-VN", {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            })}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </SheetContent>
-        </Sheet>
+        <DetailAdminRefundSheet
+          refundId={selected}
+          sheetOpen={sheetOpen}
+          setSheetOpen={setSheetOpen}
+          setConfirmAction={setConfirmAction}
+        />
 
         {/* Confirmation Dialog */}
         <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>

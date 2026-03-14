@@ -7,7 +7,7 @@ import { ShoppingCart, Heart, Star } from "lucide-react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import { getHomeProducts } from "@/services/product.service"
-import { HomeProduct } from "@/types/product"
+import { ProductCard  } from "@/types/product"
 import HomeProductCard from "../prodcuct/home-product-card"
 import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
@@ -21,7 +21,7 @@ export function ProductGrid() {
     queryKey: ["home-products"],
     queryFn: () => getHomeProducts(10),
   })
-  const products: HomeProduct[] = data || []
+  const products: ProductCard [] = data || []
   const onToggleLikeProduct = async (productId: string) => {
     const product = products.find(p => p._id === productId)
     if (!product) return
@@ -31,7 +31,7 @@ export function ProductGrid() {
     }
 
     const isLiked = product.isLiked
-    queryClient.setQueryData<HomeProduct[]>(["home-products"], old =>
+    queryClient.setQueryData<ProductCard []>(["home-products"], old =>
       old?.map(p =>
         p._id === productId
           ? { ...p, isLiked: !isLiked }
@@ -48,7 +48,7 @@ export function ProductGrid() {
         await addToWishlist(productId)
       }
     } catch (err) {
-      queryClient.setQueryData<HomeProduct[]>(["home-products"], old =>
+      queryClient.setQueryData<ProductCard []>(["home-products"], old =>
         old?.map(p =>
           p._id === productId
             ? { ...p, isLiked }

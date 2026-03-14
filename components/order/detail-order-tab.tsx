@@ -1,5 +1,5 @@
 import { OrderShippingInfo } from '@/types/order'
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Package, CheckCircle, CreditCard, Truck, BadgeDollarSign, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,8 +9,12 @@ import { formatDateTime, formatPrice, getStatusColor, ORDER_STEPS, PAYMENT_NAME 
 import BtnCancelOrder from "@/components/order/btn-cancel-order"
 import BtnReorder from "@/components/order/btn-reorder"
 import OrderItemDetailPage from "@/components/order/order-item-detai-page"
-import { useMutation } from '@tanstack/react-query'
-import { cancelOrder } from '@/services/order.service'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { cancelOrder, getOrderReviews } from '@/services/order.service'
+import { RootState } from '@/store/store'
+import { useSelector } from 'react-redux'
+import { OrderReview, Review } from '@/types/review'
+import { queryClient } from '../QueryClientProviders'
 interface DetailOrderTabProps {
     data: OrderShippingInfo
     refetch: () => void
@@ -47,6 +51,38 @@ function getOrderActions(order: OrderShippingInfo) {
 }
 
 const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) => {
+    const { isAuthenticated } = useSelector((state: RootState) => state.auth)
+    const { data: reviewsData } = useQuery({
+        queryKey: ["order-reviews", data._id],
+        queryFn: () => getOrderReviews(data._id),
+        enabled: !!data._id && isAuthenticated
+    })
+
+    const handleAddReviewSuccess = (newReview: Review|OrderReview) => {
+        queryClient.setQueryData(["order-reviews", data._id], (oldData: any) => {
+            if (!oldData) return [newReview]
+            return [...oldData, newReview]
+        })
+    }
+
+    const handleUpdateReviewSuccess = (updatedReview: Review | OrderReview) => {
+        queryClient.setQueryData(["order-reviews", data._id], (oldData: any) => {
+            if (!oldData) return oldData
+            return oldData.map((review: Review | OrderReview) =>
+                review._id === updatedReview._id ? updatedReview : review
+            )
+        }
+        )
+    }
+
+    const reviews = useMemo(() => {
+        if (!reviewsData) return []
+        return reviewsData.map(r => ({
+            ...r,
+            createdAt: formatDateTime(r.createdAt)
+        }))
+    }, [reviewsData])
+
     const actions = getOrderActions(data)
     const currentIndex = ORDER_STEPS.findIndex(
         s => s.value === data?.status
@@ -137,9 +173,20 @@ const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) =>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4 px-3 max-h-[400px] lg:max-h-[620px] overflow-y-auto">
-                                {data?.items.map((item) => (
-                                    <OrderItemDetailPage key={item.productId} item={item} canReview={actions.canReview} />
-                                ))}
+                                {data?.items.map((item) => {
+                                    const review = reviews.find((r) => r.productId === item.productId);
+                                    return (
+                                        <OrderItemDetailPage
+                                            key={item.productId}
+                                            item={item}
+                                            canReview={actions.canReview}
+                                            orderId={data._id}
+                                            review={review}
+                                            handleAddReviewSuccess={handleAddReviewSuccess}
+                                            handleUpdateReviewSuccess={handleUpdateReviewSuccess}
+                                        />
+                                    )
+                                })}
                             </div>
                         </CardContent>
                     </Card>
@@ -248,7 +295,7 @@ const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) =>
                             {/* Total */}
                             <div className="flex justify-between text-lg font-bold">
                                 <span>Tổng cộng</span>
-                                <span className="text-primary">
+                                <span className="text-orange-500">
                                     {formatPrice(data?.pricing?.total || 0)}
                                 </span>
                             </div>
@@ -294,9 +341,9 @@ const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) =>
                                         className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 flex items-center justify-center gap-2 font-medium"
                                     >
                                         <BadgeDollarSign className="h-4 w-4" />
-                                       {
-                                        data?.refundStatus === "none" ? "Yêu cầu hoàn tiền" : "Xem yêu cầu hoàn tiền"
-                                       }
+                                        {
+                                            data?.refundStatus === "none" ? "Yêu cầu hoàn tiền" : "Xem yêu cầu hoàn tiền"
+                                        }
                                     </Button>
                                 )}
 

@@ -193,11 +193,11 @@ export default function SignupPage() {
               />
               <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
                 Tôi đồng ý với{" "}
-                <Link href="/terms" className="text-primary hover:underline">
+                <Link href="/terms" className="text-orange-500 hover:underline">
                   Điều khoản dịch vụ
                 </Link>{" "}
                 và{" "}
-                <Link href="/privacy" className="text-primary hover:underline">
+                <Link href="/privacy" className="text-orange-500 hover:underline">
                   Chính sách bảo mật
                 </Link>
               </Label>
@@ -206,7 +206,7 @@ export default function SignupPage() {
               <p className="text-xs font-medium text-red-500">{errors.agreeTerms.message}</p>
             )}
 
-            <Button type="submit" className="w-full cursor-pointer" size="lg" disabled={isSubmitting}>
+            <Button type="submit" className="w-full cursor-pointer text-white" size="lg" disabled={isSubmitting}>
               {isSubmitting ? "Đang xử lý..." : "Đăng ký"}
             </Button>
           </form>
@@ -248,7 +248,7 @@ export default function SignupPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Đã có tài khoản?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline">
+            <Link href="/login" className="text-orange-500 font-medium hover:underline">
               Đăng nhập
             </Link>
           </p>

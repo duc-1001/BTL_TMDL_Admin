@@ -13,7 +13,7 @@ import { CategoryTree } from "@/types/category"
 
 export function CategoryGrid() {
   const { data, isLoading } = useQuery({
-    queryKey: ['categories-home'],
+    queryKey: ['categories-tree'],
     queryFn: getCategoryRootTree,
   })
 

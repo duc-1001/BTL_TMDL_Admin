@@ -1,7 +1,8 @@
 import { ApiClient } from "@/lib/apiClient";
 import { ApiResponse, PaginatedData } from "@/types/commons";
 import { AdminOrderListItem, OrderPayload, OrderResponse, SuccessOrderResponse, AdminOrderDetail, AdminOrderSummary, MyOrderListItem, OrderShippingInfo } from "@/types/order";
-import { RefundSummary } from "@/types/refund";
+import { OrderRefundListItem, RefundableItem, RefundSummary } from "@/types/refund";
+import { OrderReview, Review } from "@/types/review";
 
 // Admin APIs
 
@@ -105,12 +106,27 @@ export const requestOrderViewToken = async (orderCode: string, email: string) =>
     return response.data;
 }
 
-export const checkCanRefundOrder = async (orderCode: string) => {
-    const response = await ApiClient.get<ApiResponse<{ canRefund: boolean, refundDeadline: string }>>(`/orders/${orderCode}/refund-eligibility`);
+export const checkCanRefundOrder = async (orderCode: string, viewToken: string) => {
+    const response = await ApiClient.get<ApiResponse<{ canRefund: boolean, refundDeadline: string }>>(`/orders/${orderCode}/refund-eligibility`, { viewToken });
     return response.data;
 }
 
 export const getRefundSummaryInfo = async (orderCode: string, token: string) => {
     const response = await ApiClient.get<ApiResponse<RefundSummary>>(`/orders/${orderCode}/refund-summary`, { token });
+    return response.data;
+}
+
+export const getHistoryRefunds = async (orderCode: string, token: string) => {
+    const response = await ApiClient.get<ApiResponse<OrderRefundListItem[]>>(`/orders/${orderCode}/refunds`, { token });
+    return response.data;
+}
+
+export const getRefundableItems = async (orderCode: string, token: string) => {
+    const response = await ApiClient.get<ApiResponse<RefundableItem[]>>(`/orders/${orderCode}/refundable-items`, { token });
+    return response.data;
+}
+
+export const getOrderReviews = async (orderCode: string) => {
+    const response = await ApiClient.get<ApiResponse<OrderReview[]>>(`/orders/${orderCode}/reviews`);
     return response.data;
 }

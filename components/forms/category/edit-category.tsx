@@ -208,7 +208,7 @@ const EditCategory = ({ setIsEditDialogOpen, categories, selectedCategory }: Edi
                     <Button disabled={isSubmitting} variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                         Hủy
                     </Button>
-                    <Button disabled={isSubmitting} className="bg-orange-500 text-primary-foreground hover:bg-orange-500/90">
+                    <Button disabled={isSubmitting} className="bg-orange-500 text-orange-500-foreground hover:bg-orange-500/90">
                         Chỉnh sửa danh mục
                     </Button>
                 </DialogFooter>

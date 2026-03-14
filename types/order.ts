@@ -1,7 +1,6 @@
 import { InforUserCheckout } from "@/app/(user-layout)/checkout/page"
 import { GuestCartItem } from "./cart"
 import { AppliedDiscount } from "./discount"
-import { RefundStatus } from "./refund"
 
 /* ================= USER SIDE ================= */
 
@@ -182,6 +181,8 @@ export interface OrderShippingInfo {
   createdAt: string,
   refundStatus: RefundStatus
 }
+
+export type RefundStatus = "none" | "pending" | "partial" | "full";
 
 export interface PricingInfo {
   subtotal: number

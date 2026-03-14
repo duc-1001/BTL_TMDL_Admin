@@ -45,7 +45,7 @@ export function HeroSection() {
 
           {/* LEFT */}
           <div className="space-y-6">
-            <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-orange-600/10 text-primary">
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-medium bg-orange-600/10 text-orange-500">
               {isEventBanner ? "🎁 Ưu đãi sự kiện" : "✨ Ưu đãi"}
             </span>
 
@@ -61,7 +61,7 @@ export function HeroSection() {
 
             <div className="flex gap-4">
               <Button asChild size="lg">
-                <Link href={banner.buttonLink || "/products"}>
+                <Link className="text-white" href={banner.buttonLink || "/products"}>
                   {banner.buttonText || "Mua sắm ngay"}
                 </Link>
               </Button>
@@ -88,7 +88,7 @@ export function HeroSection() {
                 <div className="text-sm text-muted-foreground">
                   Thời gian sự kiện
                 </div>
-                <div className="text-lg font-bold text-primary text-center">
+                <div className="text-lg font-bold text-orange-500 text-center">
                   {remainingTime}
                 </div>
               </div>

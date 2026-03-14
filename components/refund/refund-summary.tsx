@@ -16,7 +16,8 @@ export const StatusBadge = ({ status }: { status: string }) => {
     pending: { label: "Đang kiểm tra", icon: Clock, class: "bg-amber-50 text-amber-600 border-amber-200" },
     approved: { label: "Đã chấp nhận", icon: CheckCircle2, class: "bg-blue-50 text-blue-600 border-blue-200" },
     completed: { label: "Đã hoàn tiền", icon: RotateCcw, class: "bg-green-50 text-green-600 border-green-200" },
-    rejected: { label: "Từ chối", icon: XCircle, class: "bg-rose-50 text-rose-600 border-rose-200" }
+    rejected: { label: "Từ chối", icon: XCircle, class: "bg-rose-50 text-rose-600 border-rose-200" },
+    cancelled: { label: "Đã hủy", icon: XCircle, class: "bg-gray-50 text-gray-600 border-gray-200" }
   }
   const config = styles[status] || styles.pending
   const Icon = config.icon
@@ -67,11 +68,6 @@ const RefundDetail = ({ order, viewToken }: RefundDetailProps) => {
     rejected: "bg-red-100 text-red-700",
     completed: "bg-emerald-100 text-emerald-700",
   }
-
-  const statusClass =
-    statusColorMap[refund.status?.toLowerCase()] ||
-    "bg-gray-100 text-gray-700"
-
   return (
     <div className="max-w-4xl mx-auto">
 
@@ -91,7 +87,7 @@ const RefundDetail = ({ order, viewToken }: RefundDetailProps) => {
           </div>
 
           <span
-            className={`px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}
+            className={`px-3 py-1 rounded-full text-sm font-medium`}
           >
             <StatusBadge status={refund.status} />
           </span>

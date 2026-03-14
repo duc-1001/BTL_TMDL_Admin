@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Star, X, Upload,  } from "lucide-react"
+import { Star, X, Upload, } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -20,17 +20,16 @@ import { ReviewFormData, reviewSchema } from "@/schemas/review.schema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { deleteFile, uploadFile } from "@/services/upload.service"
 import { createReview } from "@/services/review.service"
-import { CreateReviewPayload, Review } from "@/types/review"
+import { CreateReviewPayload, OrderReview, Review } from "@/types/review"
 import { toast } from "sonner"
 
 interface ReviewModalProps {
   isOpen: boolean
   onClose: () => void
   item: OrderItemSnapshot | Product
-  handleAddReviewSuccess?: (newReview: Review) => void
+  handleAddReviewSuccess?: (newReview: Review|OrderReview) => void,
+  orderId: string
 }
-
-
 
 const ratingTexts = {
   1: "Rất tệ",
@@ -44,7 +43,8 @@ export function ReviewModal({
   isOpen,
   onClose,
   item,
-  handleAddReviewSuccess
+  handleAddReviewSuccess,
+  orderId
 }: ReviewModalProps) {
   const {
     register,
@@ -71,7 +71,7 @@ export function ReviewModal({
 
   const previewImage = useMemo(() => {
     if (uploadedImages.length > 0) {
-      return uploadedImages.map((image) => typeof image === "string" ? image : URL.createObjectURL(image))
+      return uploadedImages.map((image) => typeof image === "string" ? image :  (typeof image === 'object' && "url" in image) ? image.url : URL.createObjectURL(image))
     }
     return []
   }, [uploadedImages])
@@ -110,6 +110,11 @@ export function ReviewModal({
           if (typeof file === "string") {
             return file
           }
+          else if (typeof file === "object") {
+            if ("url" in file && "imagePublicId" in file) {
+              return file
+            }
+          }
           const result = await uploadFile(file, "review")
           if (!result || !result.url || !result.imagePublicId) {
             throw new Error("Upload failed")
@@ -127,6 +132,7 @@ export function ReviewModal({
 
       const payload: CreateReviewPayload = {
         productId: "productId" in item ? item.productId : item._id,
+        orderId,
         rating: data.rating,
         comment: data.comment?.trim().replace(/\n/g, "<br>") || "",
         images: cleanImages
@@ -138,7 +144,7 @@ export function ReviewModal({
       onClose()
       toast.success("Đánh giá của bạn đã được gửi thành công!")
       reset()
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Create review failed:", error)
       await Promise.all(cleanImages.map(img => deleteFile(img.imagePublicId)))
       toast.error(error.message || "Đã có lỗi xảy ra khi gửi đánh giá.")
@@ -220,7 +226,7 @@ export function ReviewModal({
                     >
                       <Star
                         className={`h-10 w-10 transition-all duration-200 ${active
-                          ? "fill-orange-500 text-orange-500 drop-shadow-md"
+                          ? "fill-yellow-400 text-yellow-400 drop-shadow-md"
                           : "text-gray-300"
                           }`}
                       />
@@ -331,7 +337,7 @@ export function ReviewModal({
           </Button>
 
           <Button
-            className="flex-1 rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-xl transition-all duration-200"
+            className="flex-1 text-white rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-md hover:shadow-xl transition-all duration-200"
             onClick={handleSubmit}
             disabled={isSubmitting || !watch("comment")?.trim()}
           >

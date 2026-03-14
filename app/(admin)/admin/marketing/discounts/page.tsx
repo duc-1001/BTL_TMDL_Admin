@@ -11,7 +11,7 @@ import { Trash2, Edit2, Plus, Eye, Zap, Search, Download, Copy, Power, PowerOff,
 import { useQuery } from "@tanstack/react-query"
 import { exportDiscounts, getDiscountsAdmin, toggleDiscountFeature } from "@/services/discount.service"
 import useDebounce from "@/hooks/use-debounce"
-import PaginationControls from "@/components/layout/pagination-controls"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 import { formatDate } from "@/lib/utils"
 import EditDiscount from "@/components/forms/discount/edit-discount"
 import { queryClient } from "@/components/QueryClientProviders"

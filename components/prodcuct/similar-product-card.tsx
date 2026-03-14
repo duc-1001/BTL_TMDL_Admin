@@ -1,11 +1,11 @@
-import { HomeProduct } from '@/types/product'
+import { ProductCard  } from '@/types/product'
 import { Card, CardContent } from '../ui/card'
 import { formatPrice } from '@/lib/utils'
 import { Star } from 'lucide-react'
 import { Badge } from '../ui/badge'
 
 interface SimilarProductCardProps {
-    product: HomeProduct
+    product: ProductCard 
 }
 
 const SimilarProductCard = ({ product }: SimilarProductCardProps) => {
@@ -17,9 +17,9 @@ const SimilarProductCard = ({ product }: SimilarProductCardProps) => {
                     alt={product.name}
                     className="max-h-[300px] m-auto h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 />
-                {product.badge && <Badge className="absolute top-2 left-2 bg-orange-600">{product.badge}</Badge>}
+                {product.badge && <Badge className="absolute text-white top-2 left-2 bg-orange-600">{product.badge}</Badge>}
                 {product.discount && (
-                    <Badge className="absolute top-2 right-2 bg-destructive">-{product.discount}%</Badge>
+                    <Badge className="absolute text-white top-2 right-2 bg-destructive">-{product.discount}%</Badge>
                 )}
             </div>
             <CardContent className="p-4">

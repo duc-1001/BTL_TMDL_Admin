@@ -130,7 +130,7 @@ export default function AccountPage() {
               <div className="flex flex-col items-center text-center mb-6">
                 <Avatar className="h-20 w-20 mb-3">
                   <AvatarImage src={user?.avatar || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-orange-600 text-primary-foreground text-2xl">
+                  <AvatarFallback className="bg-orange-600 text-orange-500-foreground text-2xl">
                     {user?.fullName ? user.fullName.charAt(0) : ""}
                   </AvatarFallback>
                 </Avatar>
@@ -143,7 +143,7 @@ export default function AccountPage() {
               <nav className="space-y-1">
                 <Link
                   href="/account"
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-orange-600/10 text-primary font-medium"
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg bg-orange-600/10 text-orange-500 font-medium"
                 >
                   <User className="h-4 w-4" />
                   Thông tin cá nhân
@@ -197,7 +197,7 @@ export default function AccountPage() {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Tabs value={tabValue}  className="space-y-6">
+            <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
                 <TabsTrigger value="profile">Thông tin cá nhân</TabsTrigger>
                 <TabsTrigger value="addresses">Địa chỉ giao hàng</TabsTrigger>
@@ -300,7 +300,7 @@ export default function AccountPage() {
                         <CardTitle>Địa chỉ giao hàng</CardTitle>
                         <CardDescription className="mt-2">Quản lý địa chỉ nhận hàng của bạn</CardDescription>
                       </div>
-                      <Button onClick={() => setIsAddDialogOpen(true)}>Thêm địa chỉ mới</Button>
+                      <Button className="text-white" onClick={() => setIsAddDialogOpen(true)}>Thêm địa chỉ mới</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -312,7 +312,7 @@ export default function AccountPage() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-semibold">{address?.name}</h4>
                                 {address.isDefault && (
-                                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-600/10 text-primary font-medium">
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-orange-600/10 text-orange-500 font-medium">
                                     Mặc định
                                   </span>
                                 )}

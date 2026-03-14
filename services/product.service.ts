@@ -1,7 +1,7 @@
 import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { ApiResponse, PaginatedData } from "@/types/commons";
-import { BasicProductForm, BatchProductStatus, HomeProduct, Product,ProductAdmin, ProductBatch, ProductEdit, BasicProductCard, ProductForSelect } from "@/types/product";
+import { BasicProductForm, BatchProductStatus, ProductCard, Product, ProductAdmin, ProductBatch, ProductEdit, BasicProductCard, ProductForSelect } from "@/types/product";
 import { Review } from "@/types/review";
 
 export const createProduct = async (data: any) => {
@@ -41,28 +41,28 @@ export const deleteProduct = async (productId: string) => {
     return response;
 }
 
-export const getProductBasicInfo = async (productId:string) => {
+export const getProductBasicInfo = async (productId: string) => {
     const response = await ApiClient.get<ApiResponse<BasicProductForm>>(`/products/admin/${productId}/basic`);
     return response.data;
 }
 
-export const getBatchProductStatus  = async (productId:string) => {
+export const getBatchProductStatus = async (productId: string) => {
     const response = await ApiClient.get<ApiResponse<BatchProductStatus>>(`/products/admin/${productId}/batch-status`);
     return response.data;
 }
 
-export const getProductBatchesAdmin  = async (productId:string, page:number, limit:number) => {
+export const getProductBatchesAdmin = async (productId: string, page: number, limit: number) => {
     const params = { page, limit }
     const response = await ApiClient.get<PaginatedData<ProductBatch>>(`/products/admin/${productId}/batches`, params);
     return response;
 }
 
-export const updateBatchQuantity = async (productId:string, data:any) => {
+export const updateBatchQuantity = async (productId: string, data: any) => {
     const response = await ApiClient.put<ApiResponse>(`/products/admin/${productId}/batches/${data.batchId}`, { quantity: data.quantity });
     return response;
 }
 
-export const createProductBatch = async (productId:string, data:any) => {
+export const createProductBatch = async (productId: string, data: any) => {
     const formData = buildFormData(data);
     const response = await ApiClient.post<ApiResponse>(`/products/admin/${productId}/batches`, formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
@@ -77,9 +77,27 @@ export const getProductForSelect = async (q?: string, limit?: number, category_i
 }
 
 //user
+export const getProducts = async (q?: string, category?: string[], page: number = 1, limit: number = 20, sort: string = "createdAt_desc",minPrice?:number,maxPrice?:number) => {
+    const params: any = { q, page, limit, sort }
 
-export const getHomeProducts = async (limit:number) => {
-    const response = await ApiClient.get<ApiResponse<HomeProduct[]>>('/products/home',{limit});
+    if (category?.length) {
+        params.category = category.join(",")
+    }
+
+    if (minPrice !== undefined) {
+        params.min_price = minPrice;
+    }
+
+    if (maxPrice !== undefined) {
+        params.max_price = maxPrice;
+    }
+    
+    const response = await ApiClient.get<PaginatedData<ProductCard>>('/products', params);
+    return response;
+}
+
+export const getHomeProducts = async (limit: number) => {
+    const response = await ApiClient.get<ApiResponse<ProductCard[]>>('/products/home', { limit });
     return response.data;
 }
 
@@ -95,7 +113,15 @@ export const getSimilarProducts = async (id: string, limit: number = 4) => {
 }
 
 export const getCanReviewProduct = async (productId: string) => {
-    const response = await ApiClient.get<ApiResponse<{ canReview: boolean }>>(`/products/${productId}/can-review`);
+    const response = await ApiClient.get<ApiResponse<{ 
+        canReview: boolean
+        orders:{
+            orderId: string
+            orderCode: string
+            viewToken: string
+            createdAt: string
+        }[],
+     }>>(`/products/${productId}/can-review`);
     return response.data;
 }
 

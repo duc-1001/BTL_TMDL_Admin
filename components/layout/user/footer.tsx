@@ -10,7 +10,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-primary-foreground font-bold text-lg">
+              <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-orange-500-foreground font-bold text-lg">
                 🍿
               </div>
               <span className="font-bold text-xl">Snack Việt</span>
@@ -35,22 +35,22 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Liên kết nhanh</h3>
             <ul className="space-y-2 text-muted-foreground">
               <li>
-                <Link href="/about" className="hover:text-primary transition-colors">
+                <Link href="/about" className="hover:text-orange-500 transition-colors">
                   Về chúng tôi
                 </Link>
               </li>
               <li>
-                <Link href="/products" className="hover:text-primary transition-colors">
+                <Link href="/products" className="hover:text-orange-500 transition-colors">
                   Sản phẩm
                 </Link>
               </li>
               <li>
-                <Link href="/Discounts" className="hover:text-primary transition-colors">
+                <Link href="/Discounts" className="hover:text-orange-500 transition-colors">
                   Khuyến mãi
                 </Link>
               </li>
               <li>
-                <Link href="/blog" className="hover:text-primary transition-colors">
+                <Link href="/blog" className="hover:text-orange-500 transition-colors">
                   Blog
                 </Link>
               </li>
@@ -61,22 +61,22 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Hỗ trợ khách hàng</h3>
             <ul className="space-y-2 text-muted-foreground">
               <li>
-                <Link href="/faq" className="hover:text-primary transition-colors">
+                <Link href="/faq" className="hover:text-orange-500 transition-colors">
                   Câu hỏi thường gặp
                 </Link>
               </li>
               <li>
-                <Link href="/shipping" className="hover:text-primary transition-colors">
+                <Link href="/shipping" className="hover:text-orange-500 transition-colors">
                   Chính sách vận chuyển
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="hover:text-primary transition-colors">
+                <Link href="/returns" className="hover:text-orange-500 transition-colors">
                   Đổi trả hàng
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-primary transition-colors">
+                <Link href="/contact" className="hover:text-orange-500 transition-colors">
                   Liên hệ
                 </Link>
               </li>
@@ -87,22 +87,22 @@ export function Footer() {
             <h3 className="font-semibold mb-4">Liên hệ</h3>
             <ul className="space-y-3 text-muted-foreground">
               <li className="flex items-start gap-2">
-                <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-primary" />
+                <MapPin className="h-5 w-5 mt-0.5 flex-shrink-0 text-orange-500" />
                 <span className="text-pretty leading-relaxed">123 Nguyễn Huệ, Q.1, TP.HCM</span>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="h-5 w-5 flex-shrink-0 text-primary" />
+                <Phone className="h-5 w-5 flex-shrink-0 text-orange-500" />
                 <span>1900 1234</span>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="h-5 w-5 flex-shrink-0 text-primary" />
+                <Mail className="h-5 w-5 flex-shrink-0 text-orange-500" />
                 <span>hotro@snackviet.vn</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t pt-8 pb-8">
+        {/* <div className="border-t pt-8 pb-8">
           <div className="max-w-md mx-auto text-center">
             <h3 className="font-semibold mb-2">Đăng ký nhận tin</h3>
             <p className="text-sm text-muted-foreground mb-4">Nhận thông tin khuyến mãi và sản phẩm mới nhất</p>
@@ -111,7 +111,7 @@ export function Footer() {
               <Button>Đăng ký</Button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="border-t pt-8 text-center text-sm text-muted-foreground">
           <p>&copy; 2026 Snack Việt. Tất cả quyền được bảo lưu.</p>

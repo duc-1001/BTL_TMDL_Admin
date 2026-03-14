@@ -49,8 +49,8 @@ export default function DeleteUserAddress({ setIsDeleteDialogOpen, deleteAddress
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-                <Button onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>Hủy</Button>
-                <Button onClick={handleDeleteAddress} className="bg-red-500 hover:bg-red-600" disabled={isSubmitting}>
+                <Button className='text-white' onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>Hủy</Button>
+                <Button onClick={handleDeleteAddress} className="bg-red-500 hover:bg-red-600 text-white hover:text-white" disabled={isSubmitting}>
                     Xóa địa chỉ
                 </Button>
             </DialogFooter>

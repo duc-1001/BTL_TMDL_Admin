@@ -116,7 +116,7 @@ export default function OrderDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Package className="h-5 w-5 text-primary" />
+                                <Package className="h-5 w-5 text-orange-500" />
                                 Sản phẩm đã đặt
                             </CardTitle>
                         </CardHeader>
@@ -136,7 +136,7 @@ export default function OrderDetailPage() {
                                             <p className="text-sm text-muted-foreground mb-2">
                                                 {formatPrice(item.price)} x {item.quantity}
                                             </p>
-                                            <p className="font-semibold text-primary">{formatPrice(item.price * item.quantity)}</p>
+                                            <p className="font-semibold text-orange-500">{formatPrice(item.price * item.quantity)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -159,7 +159,7 @@ export default function OrderDetailPage() {
 
                             <div className="flex justify-between text-lg font-bold">
                                 <span>Tổng cộng</span>
-                                <span className="text-primary">{formatPrice(total)}</span>
+                                <span className="text-orange-500">{formatPrice(total)}</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -168,7 +168,7 @@ export default function OrderDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Truck className="h-5 w-5 text-primary" />
+                                <Truck className="h-5 w-5 text-orange-500" />
                                 Trạng thái đơn hàng
                             </CardTitle>
                         </CardHeader>
@@ -178,7 +178,7 @@ export default function OrderDetailPage() {
                                     <div key={index} className="flex gap-4">
                                         <div className="flex flex-col items-center">
                                             <div
-                                                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${event.completed ? "bg-orange-600 text-primary-foreground" : "bg-muted text-muted-foreground"
+                                                className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${event.completed ? "bg-orange-600 text-orange-500-foreground" : "bg-muted text-muted-foreground"
                                                     }`}
                                             >
                                                 {event.completed ? "✓" : index + 1}
@@ -205,7 +205,7 @@ export default function OrderDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <User className="h-5 w-5 text-primary" />
+                                <User className="h-5 w-5 text-orange-500" />
                                 Thông tin khách hàng
                             </CardTitle>
                         </CardHeader>
@@ -216,7 +216,7 @@ export default function OrderDetailPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="font-medium">{orderDetails.customer.name}</p>
-                                    <Button variant="link" className="h-auto p-0 text-sm text-primary">
+                                    <Button variant="link" className="h-auto p-0 text-sm text-orange-500">
                                         Xem hồ sơ
                                     </Button>
                                 </div>
@@ -241,7 +241,7 @@ export default function OrderDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <MapPin className="h-5 w-5 text-primary" />
+                                <MapPin className="h-5 w-5 text-orange-500" />
                                 Địa chỉ giao hàng
                             </CardTitle>
                         </CardHeader>
@@ -263,7 +263,7 @@ export default function OrderDetailPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <CreditCard className="h-5 w-5 text-primary" />
+                                <CreditCard className="h-5 w-5 text-orange-500" />
                                 Thanh toán
                             </CardTitle>
                         </CardHeader>
@@ -280,7 +280,7 @@ export default function OrderDetailPage() {
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Tổng tiền</span>
-                                <span className="font-bold text-primary">{formatPrice(total)}</span>
+                                <span className="font-bold text-orange-500">{formatPrice(total)}</span>
                             </div>
                         </CardContent>
                     </Card>

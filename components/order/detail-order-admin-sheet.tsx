@@ -341,7 +341,7 @@ const DetailOrderAdminSheet = ({
                                 <span className="text-base font-semibold">
                                     Tổng thanh toán
                                 </span>
-                                <span className="text-xl font-bold text-primary">
+                                <span className="text-xl font-bold text-orange-500">
                                     {formatPrice(selectedOrderDetail.totalAmount)}
                                 </span>
                             </div>

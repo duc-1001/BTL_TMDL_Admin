@@ -252,6 +252,13 @@ export default function NewProductPage() {
                     <p className="text-xs text-muted-foreground">
                       {watch("shortDescription")?.length || 0}/160
                     </p>
+                    {
+                      errors.shortDescription && (
+                        <p className="text-xs text-red-500 mt-1 font-medium">
+                          {errors.shortDescription.message}
+                        </p>
+                      )
+                    }
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">

@@ -41,14 +41,14 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
-      {/* <div className="bg-orange-600 text-primary-foreground py-2 text-center text-sm font-medium">
+      {/* <div className="bg-orange-600 text-orange-500-foreground py-2 text-center text-sm font-medium">
         Miễn phí vận chuyển cho đơn hàng trên 200.000đ 🎉
       </div> */}
 
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between gap-4">
           <Link href="/" className="items-center gap-2 hidden md:flex">
-            <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-primary-foreground font-bold text-lg">
+            <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center text-orange-500-foreground font-bold text-lg">
               🍿
             </div>
             <span className="font-bold text-xl hidden sm:inline-block text-balance">Snack Việt</span>
@@ -58,7 +58,7 @@ export function Header() {
             <Menu className="h-5 w-5" />
           </SidebarTrigger>
 
-          <form onSubmit={handleSearch} className="flex-1 max-w-md hidden md:flex">
+          {/* <form onSubmit={handleSearch} className="flex-1 max-w-md hidden md:flex">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -69,7 +69,7 @@ export function Header() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-          </form>
+          </form> */}
 
           <div className="flex items-center gap-2">
             {/* <Button variant="ghost" size="icon" className="hidden md:flex">
@@ -82,7 +82,7 @@ export function Header() {
                     <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.fullName || "User"} />
-                        <AvatarFallback className="bg-orange-400 text-primary-foreground">
+                        <AvatarFallback className="bg-orange-400 text-orange-500-foreground">
                           {user?.fullName ? user.fullName.charAt(0).toUpperCase() : <User className="h-5 w-5" />}
                         </AvatarFallback>
                       </Avatar>
@@ -168,19 +168,19 @@ export function Header() {
 
         {/* Existing code */}
         <nav className="hidden md:flex h-12 items-center gap-15 text-sm font-medium">
-          <Link href="/" className={`${pathname === "/" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+          <Link href="/" className={`${pathname === "/" ? "text-orange-600" : "text-muted-foreground"} hover:text-orange-500 transition-colors`}>
             Trang chủ
           </Link>
-          <Link href="/products" className={`${pathname === "/products" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+          <Link href="/products" className={`${pathname === "/products" ? "text-orange-600" : "text-muted-foreground"} hover:text-orange-500 transition-colors`}>
             Sản phẩm
           </Link>
-          <Link href="/categories" className={`${pathname === "/categories" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+          {/* <Link href="/categories" className={`${pathname === "/categories" ? "text-orange-600" : "text-muted-foreground"} hover:text-orange-500 transition-colors`}>
             Danh mục
-          </Link>
-          <Link href="/discounts" className={`${pathname === "/discounts" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+          </Link> */}
+          <Link href="/discounts" className={`${pathname === "/discounts" ? "text-orange-600" : "text-muted-foreground"} hover:text-orange-500 transition-colors`}>
             Khuyến mãi
           </Link>
-          <Link href="/about" className={`${pathname === "/about" ? "text-orange-600" : "text-muted-foreground"} hover:text-primary transition-colors`}>
+          <Link href="/about" className={`${pathname === "/about" ? "text-orange-600" : "text-muted-foreground"} hover:text-orange-500 transition-colors`}>
             Về chúng tôi
           </Link>
         </nav>

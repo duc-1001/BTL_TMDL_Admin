@@ -602,7 +602,7 @@ export default function CheckoutPage() {
                       </div>
 
 
-                      <Button disabled={isProcessing || hasInvalidItem} type="submit" size="lg" className="w-full">
+                      <Button disabled={isProcessing || hasInvalidItem} type="submit" size="lg" className="text-white w-full">
                         {paymentMethod === "cod" ?
                           "Xác nhận đặt hàng"
                           :

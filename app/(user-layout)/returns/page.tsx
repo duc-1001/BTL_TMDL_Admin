@@ -10,7 +10,7 @@ export default function ReturnsPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/10 mb-6">
-              <RotateCcw className="h-8 w-8 text-primary" />
+              <RotateCcw className="h-8 w-8 text-orange-500" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">Chính sách đổi trả</h1>
             <p className="text-lg text-muted-foreground text-balance leading-relaxed">
@@ -27,7 +27,7 @@ export default function ReturnsPage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mb-4">
-                    <Clock className="h-6 w-6 text-primary" />
+                    <Clock className="h-6 w-6 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">Đổi trả trong 7 ngày</h3>
                   <p className="text-sm text-muted-foreground text-balance">Kể từ ngày nhận hàng</p>
@@ -39,7 +39,7 @@ export default function ReturnsPage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mb-4">
-                    <CheckCircle2 className="h-6 w-6 text-primary" />
+                    <CheckCircle2 className="h-6 w-6 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">Hoàn tiền 100%</h3>
                   <p className="text-sm text-muted-foreground text-balance">Nếu lỗi từ shop</p>
@@ -51,7 +51,7 @@ export default function ReturnsPage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mb-4">
-                    <RotateCcw className="h-6 w-6 text-primary" />
+                    <RotateCcw className="h-6 w-6 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">Quy trình đơn giản</h3>
                   <p className="text-sm text-muted-foreground text-balance">Chỉ cần liên hệ hotline</p>
@@ -64,26 +64,26 @@ export default function ReturnsPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <CheckCircle2 className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Điều kiện đổi trả</h2>
                     <div className="space-y-4 text-muted-foreground">
                       <p className="leading-relaxed">Chúng tôi chấp nhận đổi trả sản phẩm trong các trường hợp sau:</p>
                       <ul className="space-y-2">
                         <li className="flex gap-2 leading-relaxed">
-                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
                           <span>Sản phẩm bị lỗi do nhà sản xuất: bao bì rách, sản phẩm hư hỏng, hết hạn sử dụng</span>
                         </li>
                         <li className="flex gap-2 leading-relaxed">
-                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
                           <span>Giao sai sản phẩm: không đúng mẫu mã, số lượng hoặc thông tin đặt hàng</span>
                         </li>
                         <li className="flex gap-2 leading-relaxed">
-                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
                           <span>Sản phẩm bị hư hại trong quá trình vận chuyển</span>
                         </li>
                         <li className="flex gap-2 leading-relaxed">
-                          <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <CheckCircle2 className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
                           <span>Sản phẩm chưa qua sử dụng, còn nguyên tem mác, bao bì</span>
                         </li>
                       </ul>
@@ -127,12 +127,12 @@ export default function ReturnsPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <AlertCircle className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <AlertCircle className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Quy trình đổi trả</h2>
                     <div className="space-y-4 text-muted-foreground">
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           1
                         </div>
                         <div>
@@ -145,7 +145,7 @@ export default function ReturnsPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           2
                         </div>
                         <div>
@@ -158,7 +158,7 @@ export default function ReturnsPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           3
                         </div>
                         <div>
@@ -171,7 +171,7 @@ export default function ReturnsPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           4
                         </div>
                         <div>
@@ -191,20 +191,20 @@ export default function ReturnsPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <Phone className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <Phone className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Thông tin liên hệ đổi trả</h2>
                     <div className="space-y-4 text-muted-foreground">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div className="border rounded-lg p-4">
                           <h3 className="font-semibold text-foreground mb-2">Hotline hỗ trợ</h3>
-                          <p className="text-2xl font-bold text-primary mb-1">1900 1234</p>
+                          <p className="text-2xl font-bold text-orange-500 mb-1">1900 1234</p>
                           <p className="text-sm">Thứ 2 - Chủ nhật: 8:00 - 22:00</p>
                         </div>
 
                         <div className="border rounded-lg p-4">
                           <h3 className="font-semibold text-foreground mb-2">Email</h3>
-                          <p className="text-lg font-semibold text-primary mb-1">doitra@snackviet.vn</p>
+                          <p className="text-lg font-semibold text-orange-500 mb-1">doitra@snackviet.vn</p>
                           <p className="text-sm">Phản hồi trong 24h</p>
                         </div>
                       </div>
@@ -227,19 +227,19 @@ export default function ReturnsPage() {
                 <h2 className="text-xl font-bold mb-3">Lưu ý quan trọng</h2>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Vui lòng quay video khi mở hàng để làm bằng chứng trong trường hợp sản phẩm có vấn đề.</span>
                   </li>
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Không nhận hàng nếu phát hiện bao bì rách, ướt hoặc có dấu hiệu bất thường.</span>
                   </li>
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Thời gian hoàn tiền có thể khác nhau tùy theo phương thức thanh toán ban đầu.</span>
                   </li>
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Nếu có thắc mắc, vui lòng liên hệ ngay để được hỗ trợ kịp thời.</span>
                   </li>
                 </ul>

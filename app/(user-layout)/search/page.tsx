@@ -66,7 +66,7 @@ function SearchResults() {
                     )}
                   </div>
                   <div className="p-4">
-                    <h3 className="font-medium text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-medium text-sm mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
                       {product.name}
                     </h3>
                     <div className="flex items-center gap-1 mb-2">
@@ -77,7 +77,7 @@ function SearchResults() {
                       <span className="text-xs text-muted-foreground">({product.sold})</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-base font-bold text-primary">{product.price.toLocaleString("vi-VN")}đ</span>
+                      <span className="text-base font-bold text-orange-500">{product.price.toLocaleString("vi-VN")}đ</span>
                       <span className="text-xs text-muted-foreground line-through">
                         {product.originalPrice.toLocaleString("vi-VN")}đ
                       </span>

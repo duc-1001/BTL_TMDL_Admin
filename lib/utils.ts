@@ -115,6 +115,13 @@ export const ORDER_STEPS = [
     { value: 'completed', label: 'Hoàn tất' }
 ] as const
 
+export const HIDE_REVIEW_REASONS = [
+    { value: "SPAM", label: "Spam / quảng cáo" },
+    { value: "OFFENSIVE", label: "Ngôn từ không phù hợp" },
+    { value: "IRRELEVANT", label: "Không liên quan đến sản phẩm" }
+] 
+
+
 export const PAYMENT_NAME: Record<string, string> = {
     cod: "Thanh toán khi nhận hàng",
     banking: "Chuyển khoản ngân hàng",

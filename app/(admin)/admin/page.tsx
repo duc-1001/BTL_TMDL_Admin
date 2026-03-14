@@ -150,7 +150,7 @@ export default function AdminDashboard() {
                   {recentOrders.map((order) => (
                     <tr key={order.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                       <td className="py-3 px-2">
-                        <Link href={`/admin/orders/${order.id}`} className="font-medium hover:text-primary">
+                        <Link href={`/admin/orders/${order.id}`} className="font-medium hover:text-orange-500">
                           {order.id}
                         </Link>
                       </td>
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                     <p className="text-xs text-muted-foreground">Đã bán: {product.sold}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm text-primary">{formatPrice(product.revenue)}</p>
+                    <p className="font-semibold text-sm text-orange-500">{formatPrice(product.revenue)}</p>
                   </div>
                 </div>
               ))}

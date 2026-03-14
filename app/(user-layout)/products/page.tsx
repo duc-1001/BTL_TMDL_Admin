@@ -1,7 +1,6 @@
 "use client"
-
-import { useState } from "react"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { Minus, Plus, Search, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,76 +9,173 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import Image from "next/image"
-
-const categories = [
-  { id: "snacks", name: "Snack giòn", count: 45 },
-  { id: "candy", name: "Kẹo", count: 38 },
-  { id: "dried-fruit", name: "Hoa quả sấy", count: 28 },
-  { id: "nuts", name: "Hạt dinh dưỡng", count: 32 },
-  { id: "chocolate", name: "Socola", count: 25 },
-  { id: "cookies", name: "Bánh quy", count: 41 },
-]
+import { useQuery } from "@tanstack/react-query"
+import useDebounce from "@/hooks/use-debounce"
+import { getProducts } from "@/services/product.service"
+import { useSearchParams, useRouter, usePathname } from "next/navigation"
+import ProductCard from "@/components/prodcuct/product-card"
+import PaginationControls from "@/components/layout/pagination-controls-user"
+import { getCategoryRootTree } from "@/services/category.service"
+import { CategoryTree } from "@/types/category"
 
 const priceRanges = [
   { id: "under-50k", label: "Dưới 50.000đ", min: 0, max: 50000 },
   { id: "50-100k", label: "50.000đ - 100.000đ", min: 50000, max: 100000 },
   { id: "100-200k", label: "100.000đ - 200.000đ", min: 100000, max: 200000 },
-  { id: "over-200k", label: "Trên 200.000đ", min: 200000, max: Number.POSITIVE_INFINITY },
+  { id: "over-200k", label: "Trên 200.000đ", min: 200000, max: Infinity }
 ]
 
-const products = Array.from({ length: 24 }, (_, i) => ({
-  id: i + 1,
-  name: `Snack Hàn Quốc ${i + 1}`,
-  price: Math.floor(Math.random() * 150000) + 30000,
-  originalPrice: Math.floor(Math.random() * 200000) + 50000,
-  image: `/placeholder.svg?height=300&width=300&query=vietnamese snack ${i + 1}`,
-  rating: 4 + Math.random(),
-  sold: Math.floor(Math.random() * 1000),
-  discount: Math.floor(Math.random() * 50) + 10,
-  category: categories[Math.floor(Math.random() * categories.length)].id,
-}))
-
 export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-  const [selectedPriceRange, setSelectedPriceRange] = useState<string>("")
-  const [sortBy, setSortBy] = useState("popular")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category)
+  const initialSearch = searchParams.get("q") || ""
+  const categorySlugParam = searchParams.get("category") || ""
+  const sortParam = searchParams.get("sort") || "newest"
+  const pageParam = Number(searchParams.get("page") || 1)
 
-    let matchesPrice = true
-    if (selectedPriceRange) {
-      const range = priceRanges.find((r) => r.id === selectedPriceRange)
-      if (range) {
-        matchesPrice = product.price >= range.min && product.price <= range.max
+  const [searchQuery, setSearchQuery] = useState(initialSearch)
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categorySlugParam ? categorySlugParam.split(",") : []
+  )
+  const [selectedPriceRange, setSelectedPriceRange] = useState("")
+  const [sortBy, setSortBy] = useState(sortParam)
+  const [currentPage, setCurrentPage] = useState(pageParam)
+
+  const q = useDebounce(searchQuery, 500)
+  const selectedRange = useMemo(() => priceRanges.find(r => r.id === selectedPriceRange), [selectedPriceRange])
+
+  const { data: dataCategoryTree } = useQuery({
+    queryKey: ["categories-tree"],
+    queryFn: getCategoryRootTree,
+  })
+  const categories = useMemo(() => dataCategoryTree ?? [], [dataCategoryTree])
+
+  // === FIX: Đồng bộ trạng thái khi load ban đầu hoặc selectedCategories thay đổi ===
+  useEffect(() => {
+    if (!categories.length) return // chưa load tree
+
+    setSelectedCategories(prev => {
+      let newSelected = [...prev]
+
+      // Duyệt qua toàn bộ tree, nếu slug nào trong prev thì thêm hết con cháu nếu chưa có
+      const syncTree = (cat: CategoryTree) => {
+        if (newSelected.includes(cat.slug)) {
+          const allDescendants = getAllDescendantSlugs(cat)
+          allDescendants.forEach(slug => {
+            if (!newSelected.includes(slug)) {
+              newSelected.push(slug)
+            }
+          })
+        }
+        if (cat.children) {
+          cat.children.forEach(syncTree)
+        }
       }
-    }
 
-    return matchesSearch && matchesCategory && matchesPrice
+      categories.forEach(syncTree)
+
+      // Loại bỏ trùng lặp (dù set không cần nhưng an toàn)
+      return [...new Set(newSelected)]
+    })
+  }, [categories]) // chỉ chạy khi tree categories load xong
+
+  // Sync query params (giữ nguyên, nhưng giờ selectedCategories đã đầy đủ slug)
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    if (selectedCategories.length) params.set("category", selectedCategories.join(","))
+    if (selectedRange?.min !== undefined) params.set("min_price", String(selectedRange.min))
+    if (selectedRange?.max !== undefined && selectedRange.max !== Infinity) params.set("max_price", String(selectedRange.max))
+    if (sortBy) params.set("sort", sortBy)
+    if (currentPage > 1) params.set("page", String(currentPage))
+    router.replace(`${pathname}?${params.toString()}`)
+  }, [q, selectedCategories, selectedRange, sortBy, currentPage, router, pathname])
+
+  const { data } = useQuery({
+    queryKey: ["products", q, selectedCategories, selectedPriceRange, sortBy, currentPage],
+    queryFn: () => getProducts(q, selectedCategories, currentPage, 20, sortBy, selectedRange?.min, selectedRange?.max)
   })
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    switch (sortBy) {
-      case "price-asc":
-        return a.price - b.price
-      case "price-desc":
-        return b.price - a.price
-      case "newest":
-        return b.id - a.id
-      case "popular":
-      default:
-        return b.sold - a.sold
-    }
-  })
+  const products = data?.data || []
+  const totalPages = data?.pagination?.totalPages || 1
 
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId) ? prev.filter((id) => id !== categoryId) : [...prev, categoryId],
+  const getAllDescendantSlugs = (category: CategoryTree): string[] => {
+    let slugs: string[] = [category.slug]
+    if (category.children) {
+      category.children.forEach(child => {
+        slugs = slugs.concat(getAllDescendantSlugs(child))
+      })
+    }
+    return slugs
+  }
+
+  const toggleCategory = (category: CategoryTree) => {
+    const allSlugs = getAllDescendantSlugs(category)
+    setSelectedCategories(prev => {
+      const isFullySelected = allSlugs.every(slug => prev.includes(slug))
+
+      if (isFullySelected) {
+        return prev.filter(slug => !allSlugs.includes(slug))
+      } else {
+        return [...new Set([...prev, ...allSlugs])]
+      }
+    })
+    setCurrentPage(1)
+  }
+
+  const hasAnySelectedDescendant = (category: CategoryTree): boolean => {
+    return getAllDescendantSlugs(category).some(slug => selectedCategories.includes(slug))
+  }
+
+  const CategoryItem = ({ category, level = 0 }: { category: CategoryTree; level?: number }) => {
+    const hasChildren = category.children?.length > 0
+    const [open, setOpen] = useState(hasAnySelectedDescendant(category))
+
+    useEffect(() => {
+      if (hasAnySelectedDescendant(category) && !open) {
+        setOpen(true)
+      }
+    }, [selectedCategories])
+
+    return (
+      <div>
+        <div className="flex items-center space-x-2" style={{ paddingLeft: `${level * 16}px` }}>
+          {hasChildren ? (
+            <button
+              type="button"
+              className="text-xs w-4 flex items-center justify-center"
+              onClick={() => setOpen(!open)}
+            >
+              {open ? <Minus className="h-4 w-4 text-gray-500" /> : <Plus className="h-4 w-4 text-gray-500" />}
+            </button>
+          ) : (
+            <div className="w-4" />
+          )}
+
+          <Checkbox
+            id={category.slug}
+            checked={selectedCategories.includes(category.slug)}
+            onCheckedChange={() => toggleCategory(category)}
+          />
+
+          <Label htmlFor={category.slug} className="text-sm font-normal cursor-pointer flex-1">
+            {category.name}
+            {category.productCount !== undefined && (
+              <span className="text-muted-foreground ml-1">({category.productCount})</span>
+            )}
+          </Label>
+        </div>
+
+        {hasChildren && open && (
+          <div className="space-y-2 mt-2">
+            {category.children.map(child => (
+              <CategoryItem key={child.slug} category={child} level={level + 1} />
+            ))}
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -88,31 +184,19 @@ export default function ProductsPage() {
       <div>
         <h3 className="font-semibold mb-4">Danh mục</h3>
         <div className="space-y-3">
-          {categories.map((category) => (
-            <div key={category.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={category.id}
-                checked={selectedCategories.includes(category.id)}
-                onCheckedChange={() => toggleCategory(category.id)}
-              />
-              <Label htmlFor={category.id} className="text-sm font-normal cursor-pointer flex-1">
-                {category.name}
-                <span className="text-muted-foreground ml-1">({category.count})</span>
-              </Label>
-            </div>
+          {categories.map(category => (
+            <CategoryItem key={category.slug} category={category} />
           ))}
         </div>
       </div>
 
       <div>
         <h3 className="font-semibold mb-4">Khoảng giá</h3>
-        <RadioGroup value={selectedPriceRange} onValueChange={setSelectedPriceRange}>
-          {priceRanges.map((range) => (
+        <RadioGroup value={selectedPriceRange} onValueChange={v => { setSelectedPriceRange(v); setCurrentPage(1) }}>
+          {priceRanges.map(range => (
             <div key={range.id} className="flex items-center space-x-2">
               <RadioGroupItem value={range.id} id={range.id} />
-              <Label htmlFor={range.id} className="text-sm font-normal cursor-pointer">
-                {range.label}
-              </Label>
+              <Label htmlFor={range.id} className="text-sm font-normal cursor-pointer">{range.label}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -121,10 +205,7 @@ export default function ProductsPage() {
       <Button
         variant="outline"
         className="w-full bg-transparent"
-        onClick={() => {
-          setSelectedCategories([])
-          setSelectedPriceRange("")
-        }}
+        onClick={() => { setSelectedCategories([]); setSelectedPriceRange(""); setCurrentPage(1) }}
       >
         Xóa bộ lọc
       </Button>
@@ -134,60 +215,53 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Tất cả sản phẩm</h1>
-          <p className="text-muted-foreground">Khám phá {products.length} sản phẩm đồ ăn vặt chất lượng</p>
+          <p className="text-muted-foreground">Khám phá {products.length} sản phẩm</p>
         </div>
 
-        {/* Search and Filter Bar */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Tìm kiếm sản phẩm..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1) }}
               className="pl-10"
             />
           </div>
 
           <div className="flex gap-2">
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={v => { setSortBy(v); setCurrentPage(1) }}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Sắp xếp" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="popular">Phổ biến nhất</SelectItem>
                 <SelectItem value="newest">Mới nhất</SelectItem>
-                <SelectItem value="price-asc">Giá: Thấp đến cao</SelectItem>
-                <SelectItem value="price-desc">Giá: Cao đến thấp</SelectItem>
+                <SelectItem value="price-asc">Giá thấp → cao</SelectItem>
+                <SelectItem value="price-desc">Giá cao → thấp</SelectItem>
               </SelectContent>
             </Select>
 
-            {/* Mobile Filter */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="lg:hidden bg-transparent">
-                  <SlidersHorizontal className="h-4 w-4 mr-2" />
-                  Lọc
+                <Button variant="outline" className="lg:hidden">
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />Lọc
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left">
+              <SheetContent side="left" className="px-5">
                 <SheetHeader>
                   <SheetTitle>Bộ lọc</SheetTitle>
-                  <SheetDescription>Tùy chỉnh kết quả tìm kiếm của bạn</SheetDescription>
+                  <SheetDescription>Tùy chỉnh kết quả tìm kiếm</SheetDescription>
                 </SheetHeader>
-                <div className="mt-6">
-                  <FilterContent />
-                </div>
+                <FilterContent />
               </SheetContent>
             </Sheet>
           </div>
         </div>
 
         <div className="flex gap-6">
-          {/* Desktop Sidebar Filters */}
           <aside className="hidden lg:block w-64 shrink-0">
             <Card>
               <CardContent className="p-6">
@@ -197,59 +271,22 @@ export default function ProductsPage() {
             </Card>
           </aside>
 
-          {/* Products Grid */}
           <div className="flex-1">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">Hiển thị {sortedProducts.length} sản phẩm</p>
-            </div>
-
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {sortedProducts.map((product) => (
-                <Link key={product.id} href={`/product/${product.id}`}>
-                  <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-                    <CardContent className="p-0">
-                      <div className="relative aspect-square overflow-hidden bg-muted">
-                        <Image
-                          src={product.image || "/placeholder.svg"}
-                          alt={product.name}
-                          fill
-                          className="object-cover group-hover:scale-110 transition-transform duration-300"
-                        />
-                        {product.discount > 0 && (
-                          <Badge className="absolute top-2 right-2 bg-red-500">-{product.discount}%</Badge>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-medium text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center gap-1 mb-2">
-                          <div className="flex text-yellow-400">
-                            {"★".repeat(Math.floor(product.rating))}
-                            {"☆".repeat(5 - Math.floor(product.rating))}
-                          </div>
-                          <span className="text-xs text-muted-foreground">({product.sold})</span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-bold text-primary">
-                            {product.price.toLocaleString("vi-VN")}đ
-                          </span>
-                          <span className="text-xs text-muted-foreground line-through">
-                            {product.originalPrice.toLocaleString("vi-VN")}đ
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+              {products.map(product => (
+                <ProductCard key={product._id} product={product} />
               ))}
             </div>
 
-            {sortedProducts.length === 0 && (
+            {products.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">Không tìm thấy sản phẩm nào</p>
+                <p className="text-muted-foreground">Không tìm thấy sản phẩm</p>
               </div>
             )}
+
+            <div className="mt-6">
+              <PaginationControls currentPage={currentPage} setCurrentPage={setCurrentPage} totalPages={totalPages} />
+            </div>
           </div>
         </div>
       </div>

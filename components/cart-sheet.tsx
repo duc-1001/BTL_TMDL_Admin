@@ -45,8 +45,6 @@ export function CartSheet() {
   const { updateQuantity, removeItem } = useCartActions(isAuthenticated)
 
   const subtotal = discountData?.subtotal || 0
-  const discountDiscount = discountData?.discountDiscount || 0
-  const total = discountData?.totalPrice || 0
   const totalItems = data?.items.length || 0
 
   return (
@@ -55,7 +53,7 @@ export function CartSheet() {
         <Button variant="ghost" size="icon" className="relative">
           <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+            <Badge className="absolute -top-1 text-white -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
               {totalItems}
             </Badge>
           )}
@@ -79,7 +77,7 @@ export function CartSheet() {
               <p className="text-sm text-muted-foreground">Thêm sản phẩm vào giỏ để tiếp tục mua sắm</p>
             </div>
             <Button asChild>
-              <Link href="/products">Khám phá sản phẩm</Link>
+              <Link className={'text-white'} href="/products">Khám phá sản phẩm</Link>
             </Button>
           </div>
         ) : (
@@ -134,7 +132,7 @@ export function CartSheet() {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-primary">
+                          <span className="font-semibold text-orange-500">
                             {formatPrice(item.price)}
                           </span>
 
@@ -201,7 +199,7 @@ export function CartSheet() {
             <div className="space-y-4 pt-4">
               <div className="flex justify-between text-lg font-bold">
                 <span>Tạm tính</span>
-                <span className="text-primary">{formatPrice(subtotal)}</span>
+                <span className="text-orange-500">{formatPrice(subtotal)}</span>
               </div>
 
               <div className="flex gap-2">
@@ -212,7 +210,7 @@ export function CartSheet() {
                 </SheetClose>
                 <SheetClose asChild>
                   <Button asChild className="flex-1">
-                    <Link href="/checkout">Thanh toán</Link>
+                    <Link href="/checkout" className={"text-white"}>Thanh toán</Link>
                   </Button>
                 </SheetClose>
               </div>

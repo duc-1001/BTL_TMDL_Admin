@@ -214,7 +214,7 @@ export default function AddNewAddress({ setIsAddDialogOpen }: AddNewAddressProps
                     >
                         Hủy
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>Thêm địa chỉ</Button>
+                    <Button className="text-white" type="submit" disabled={isSubmitting}>Thêm địa chỉ</Button>
                 </DialogFooter>
             </form>
         </DialogContent>

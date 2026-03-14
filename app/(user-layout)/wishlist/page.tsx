@@ -63,7 +63,8 @@ export default function WishlistPage() {
             <h2 className="text-2xl font-bold mb-2">Danh sách yêu thích trống</h2>
             <p className="text-muted-foreground mb-6">Thêm sản phẩm bạn thích vào danh sách để mua sau</p>
             <Button asChild size="lg">
-              <Link href="/products">Khám phá sản phẩm</Link>
+              <Link href="/products" className="text-white">Khám phá sản phẩm</Link>
+
             </Button>
           </div>
         </div>
@@ -73,13 +74,13 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4">
         <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">Sản phẩm yêu thích</h1>
           <p className="text-muted-foreground">Bạn có {wishlistItems.length} sản phẩm trong danh sách yêu thích</p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {wishlistItems.map((item) => (
             <Card key={item._id} className="group overflow-hidden">
               <CardContent className="p-0">
@@ -92,7 +93,7 @@ export default function WishlistPage() {
                       className="object-cover group-hover:scale-110 transition-transform duration-300"
                     />
                     {item.discount > 0 && (
-                      <Badge className="absolute top-2 right-2 bg-red-500">-{item.discount}%</Badge>
+                      <Badge className="absolute text-white top-2 right-2 bg-red-500">-{item.discount}%</Badge>
                     )}
                     <Button
                       variant="ghost"
@@ -108,16 +109,16 @@ export default function WishlistPage() {
                   </div>
                 </Link>
 
-                <div className="p-4">
+                <div className="px-4 pt-4">
                   <Link href={`/product/${item._id}`}>
-                    <h3 className="font-medium mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                    <h3 className="font-medium mb-2 line-clamp-2 group-hover:text-orange-500 transition-colors">
                       {item.name}
                     </h3>
                   </Link>
 
                   <div className="flex flex-col gap-2 mb-3">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-primary">{item.price.toLocaleString("vi-VN")}đ</span>
+                      <span className="text-lg font-bold text-orange-500">{item.price.toLocaleString("vi-VN")}đ</span>
                       <span className="text-sm text-muted-foreground line-through">
                         {item.originalPrice.toLocaleString("vi-VN")}đ
                       </span>
@@ -125,7 +126,7 @@ export default function WishlistPage() {
                     {item.stock === 0 && <p className="text-sm text-red-500">Tạm hết hàng</p>}
                   </div>
 
-                  <Button className="w-full" disabled={item.stock === 0}>
+                  <Button className="w-full text-white" disabled={item.stock === 0}>
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     {item.stock > 0 ? "Thêm vào giỏ" : "Hết hàng"}
                   </Button>

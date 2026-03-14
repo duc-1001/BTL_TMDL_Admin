@@ -59,7 +59,7 @@ export default function AboutPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mx-auto mb-4">
-                  <Heart className="h-6 w-6 text-primary" />
+                  <Heart className="h-6 w-6 text-orange-500" />
                 </div>
                 <h3 className="font-semibold mb-2">Tận tâm</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -71,7 +71,7 @@ export default function AboutPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mx-auto mb-4">
-                  <Award className="h-6 w-6 text-primary" />
+                  <Award className="h-6 w-6 text-orange-500" />
                 </div>
                 <h3 className="font-semibold mb-2">Chất lượng</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -83,7 +83,7 @@ export default function AboutPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mx-auto mb-4">
-                  <Truck className="h-6 w-6 text-primary" />
+                  <Truck className="h-6 w-6 text-orange-500" />
                 </div>
                 <h3 className="font-semibold mb-2">Nhanh chóng</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
@@ -95,7 +95,7 @@ export default function AboutPage() {
             <Card>
               <CardContent className="p-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mx-auto mb-4">
-                  <Shield className="h-6 w-6 text-primary" />
+                  <Shield className="h-6 w-6 text-orange-500" />
                 </div>
                 <h3 className="font-semibold mb-2">Uy tín</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">Xây dựng niềm tin qua từng sản phẩm</p>
@@ -110,19 +110,19 @@ export default function AboutPage() {
         <div className="container mx-auto px-4">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold text-primary mb-2">50K+</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">50K+</div>
               <p className="text-muted-foreground">Khách hàng hài lòng</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-primary mb-2">200+</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">200+</div>
               <p className="text-muted-foreground">Sản phẩm đa dạng</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-primary mb-2">100K+</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">100K+</div>
               <p className="text-muted-foreground">Đơn hàng thành công</p>
             </div>
             <div>
-              <div className="text-4xl font-bold text-primary mb-2">4.8/5</div>
+              <div className="text-4xl font-bold text-orange-500 mb-2">4.8/5</div>
               <p className="text-muted-foreground">Đánh giá trung bình</p>
             </div>
           </div>

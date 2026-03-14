@@ -113,19 +113,23 @@ export default function ProductPage({ slug }: ProductPageProps) {
     }
   }
 
-  const handleUpdateRating = (newRating: number) => {
+  const handleUpdateRating = (oldRating: number, newRating: number) => {
     queryClient.setQueryData<Product>(["product-details", slug], old => {
       if (!old) return old
-      const currentRating = old.ratingAvg || 0
-      const currentCount = old.ratingCount || 0
-      const newAverage = ((currentRating * currentCount) + newRating) / (currentCount + 1)
+
+      const currentAvg = old.ratingAvg || 0
+      const count = old.ratingCount || 0
+
+      const totalScore = currentAvg * count
+      const newTotalScore = totalScore - oldRating + newRating
+      const newAvg = count === 0 ? 0 : newTotalScore / count
 
       return {
         ...old,
-        ratingAvg: newAverage,
-        ratingCount: currentCount + 1,
+        ratingAvg: newAvg,
         ratingBreakdown: {
           ...old.ratingBreakdown,
+          [oldRating]: Math.max((old.ratingBreakdown?.[oldRating] || 1) - 1, 0),
           [newRating]: (old.ratingBreakdown?.[newRating] || 0) + 1
         }
       }
@@ -176,11 +180,11 @@ export default function ProductPage({ slug }: ProductPageProps) {
                   className="h-full max-h-[620px] m-auto  object-cover"
                 />
                 {product.badge && (
-                  <Badge className="absolute top-4 left-4 bg-orange-600 text-base px-4 py-1">{product.badge}</Badge>
+                  <Badge className="absolute top-4 left-4 bg-orange-600 text-base text-white px-4 py-1">{product.badge}</Badge>
                 )}
-                {product.discount && (
-                  <Badge className="absolute top-4 right-4 bg-destructive text-base px-4 py-1">
-                    -{product.discount}%
+                {product.discount > 0 && (
+                  <Badge className="absolute top-4 right-4 bg-destructive text-base text-white px-4 py-1">
+                    -{String(product.discount)}%
                   </Badge>
                 )}
               </div>
@@ -257,7 +261,7 @@ export default function ProductPage({ slug }: ProductPageProps) {
                 <Button onClick={() => {
                   addItem(product._id, quantity)
                   router.push('/checkout')
-                }} variant="default" size="lg" className="w-full text-base cursor-pointer bg-orange-600 hover:bg-orange-600/90">
+                }} variant="default" size="lg" className="w-full text-white text-base cursor-pointer bg-orange-600 hover:bg-orange-600/90">
                   Mua ngay
                 </Button>
               </div>

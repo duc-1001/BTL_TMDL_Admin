@@ -85,7 +85,7 @@ export default function CartPage() {
             <h2 className="text-2xl font-bold mb-2">Giỏ hàng trống</h2>
             <p className="text-muted-foreground mb-6">Bạn chưa có sản phẩm nào trong giỏ hàng</p>
             <Button asChild size="lg">
-              <Link href="/products">Khám phá sản phẩm</Link>
+              <Link href="/products" className="text-white">Khám phá sản phẩm</Link>
             </Button>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function CartPage() {
                         </Button>
                       </div>
 
-                      <p className="font-bold text-primary mt-1">
+                      <p className="font-bold text-orange-500 mt-1">
                         {formatPrice(item.price)}
                       </p>
 
@@ -243,10 +243,10 @@ export default function CartPage() {
 
               <div className="flex justify-between text-lg font-bold mb-6">
                 <span>Tổng cộng</span>
-                <span className="text-primary">{total.toLocaleString("vi-VN")}đ</span>
+                <span className="text-orange-500">{total.toLocaleString("vi-VN")}đ</span>
               </div>
 
-              <Button asChild size="lg" className="w-full">
+              <Button asChild size="lg" className="w-full text-white">
                 <Link href="/checkout">Thanh toán</Link>
               </Button>
 

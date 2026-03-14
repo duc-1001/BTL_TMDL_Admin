@@ -1,4 +1,4 @@
-import { HomeProduct } from '@/types/product'
+import { ProductCard  } from '@/types/product'
 import React, { use } from 'react'
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import Link from 'next/link'
@@ -14,7 +14,7 @@ import { addToCart } from '@/services/cart.service'
 import { toast } from 'sonner'
 
 interface HomeProductCardProps {
-  product: HomeProduct
+  product: ProductCard 
   onToggleLike: (productId: string) => void
 }
 
@@ -30,9 +30,9 @@ const HomeProductCard = ({ product, onToggleLike }: HomeProductCardProps) => {
             alt={product.name}
             className="h-[300px] m-auto object-cover group-hover:scale-110 transition-transform duration-300"
           />
-          {product.badge && <Badge className="absolute top-2 left-2 bg-orange-600">{product.badge}</Badge>}
+          {product.badge && <Badge className="absolute top-2 left-2 text-white bg-orange-600">{product.badge}</Badge>}
           {Number(product.discount) > 0 && (
-            <Badge className="absolute top-2 right-2 bg-destructive">
+            <Badge className="absolute top-2 right-2 text-white bg-destructive">
               -{product.discount}%
             </Badge>
           )}
@@ -50,7 +50,7 @@ const HomeProductCard = ({ product, onToggleLike }: HomeProductCardProps) => {
         </Link>
         <p className="text-sm text-muted-foreground line-clamp-1">{product.shortDescription}</p>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-primary">{formatPrice(product.price)}</span>
+          <span className="text-lg font-bold text-orange-500">{formatPrice(product.price)}</span>
           {product.originalPrice && (
             <span className="text-sm text-muted-foreground line-through">
               {formatPrice(product.originalPrice)}

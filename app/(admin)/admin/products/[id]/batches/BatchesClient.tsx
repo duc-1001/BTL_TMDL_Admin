@@ -34,7 +34,7 @@ import {
 import { useQuery, useMutation } from "@tanstack/react-query"
 import { getProductBatchesAdmin, updateBatchQuantity, createProductBatch } from "@/services/product.service"
 import { ProductBatch } from "@/types/product"
-import PaginationControls from "@/components/layout/pagination-controls"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 import { toast } from "sonner"
 import { queryClient } from "@/components/QueryClientProviders"
 import { Alert } from "@/components/ui/alert"
@@ -134,7 +134,7 @@ export default function ProductBatchesPage({ productId }: ProductBatchesPageProp
                                 <TableHead className="pl-6">Ngày nhập</TableHead>
                                 <TableHead className="text-right">Giá nhập</TableHead>
                                 <TableHead className="text-right">Ban đầu / Còn lại</TableHead>
-                                <TableHead className="text-right font-bold text-primary">Giá trị tồn</TableHead>
+                                <TableHead className="text-right font-bold text-orange-500">Giá trị tồn</TableHead>
                                 <TableHead>Hạn sử dụng</TableHead>
                                 <TableHead>Trạng thái</TableHead>
                                 <TableHead className="text-right pr-6">Thao tác</TableHead>
@@ -160,7 +160,7 @@ export default function ProductBatchesPage({ productId }: ProductBatchesPageProp
                                                 {batch.remainingQuantity}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-right font-semibold text-primary">
+                                        <TableCell className="text-right font-semibold text-orange-500">
                                             {(batch.remainingQuantity * (batch.importPrice || 0)).toLocaleString()}₫
                                         </TableCell>
                                         <TableCell>

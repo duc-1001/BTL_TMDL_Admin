@@ -1,5 +1,7 @@
 /* ================= REVIEW BASE ================= */
 
+export type ReasonCode = "SPAM" | "OFFENSIVE" | "IRRELEVANT" | "OTHER"
+
 export interface ReviewImage {
   url: string
   imagePublicId: string
@@ -15,17 +17,32 @@ export interface ReviewUser {
 
 export interface Review {
   _id: string
+  productId: string
   rating: number
   comment: string
+  isMine: boolean
   images: ReviewImage[]
   createdAt: string
   user: ReviewUser | null
+}
+
+export interface OrderReview extends Review {
+  hiddenReasonText?: string | null
+  hiddenReasonCode?: ReasonCode | null
+  isHidden: boolean
 }
 
 /* ================= CREATE REVIEW ================= */
 
 export interface CreateReviewPayload {
   productId: string
+  orderId: string
+  rating: number
+  comment?: string
+  images?: ReviewImage[]
+}
+
+export interface EditReviewPayload {
   rating: number
   comment?: string
   images?: ReviewImage[]
@@ -44,11 +61,14 @@ export interface ReviewListResponse {
 /* ================= ADMIN REVIEW ================= */
 
 export interface AdminReview extends Review {
-  userId: string
-  productId: string
-  isDeleted: boolean
   isHidden: boolean
-  hiddenReason?: string | null
+  hiddenReasonText?: string | null
+  hiddenReasonCode?: ReasonCode | null
   hiddenAt?: string | null
   hiddenBy?: string | null
+  product: {
+    _id: string
+    name: string
+    slug: string
+  }
 }

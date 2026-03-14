@@ -10,7 +10,7 @@ export default function ShippingPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-600/10 mb-6">
-              <Truck className="h-8 w-8 text-primary" />
+              <Truck className="h-8 w-8 text-orange-500" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-balance">Chính sách vận chuyển</h1>
             <p className="text-lg text-muted-foreground text-balance leading-relaxed">
@@ -27,7 +27,7 @@ export default function ShippingPage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mb-4">
-                    <Truck className="h-6 w-6 text-primary" />
+                    <Truck className="h-6 w-6 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">Giao hàng toàn quốc</h3>
                   <p className="text-sm text-muted-foreground text-balance">Phủ sóng 63 tỉnh thành</p>
@@ -39,7 +39,7 @@ export default function ShippingPage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mb-4">
-                    <Clock className="h-6 w-6 text-primary" />
+                    <Clock className="h-6 w-6 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">Giao hàng nhanh</h3>
                   <p className="text-sm text-muted-foreground text-balance">2-3 ngày nội thành</p>
@@ -51,7 +51,7 @@ export default function ShippingPage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center mb-4">
-                    <Package className="h-6 w-6 text-primary" />
+                    <Package className="h-6 w-6 text-orange-500" />
                   </div>
                   <h3 className="font-semibold mb-2">Đóng gói cẩn thận</h3>
                   <p className="text-sm text-muted-foreground text-balance">Đảm bảo hàng nguyên vẹn</p>
@@ -64,7 +64,7 @@ export default function ShippingPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <MapPin className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <MapPin className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Khu vực giao hàng</h2>
                     <div className="space-y-4 text-muted-foreground">
@@ -98,14 +98,14 @@ export default function ShippingPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <DollarSign className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <DollarSign className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Phí vận chuyển</h2>
                     <div className="space-y-4">
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold">Miễn phí vận chuyển</h3>
-                          <span className="text-sm bg-orange-600/10 text-primary px-2 py-1 rounded">Khuyến mãi</span>
+                          <span className="text-sm bg-orange-600/10 text-orange-500 px-2 py-1 rounded">Khuyến mãi</span>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                           Áp dụng cho đơn hàng từ 300.000đ trở lên tại nội thành TP.HCM và Hà Nội
@@ -115,7 +115,7 @@ export default function ShippingPage() {
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold">Nội thành</h3>
-                          <span className="font-semibold text-primary">25.000đ</span>
+                          <span className="font-semibold text-orange-500">25.000đ</span>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                           Phí vận chuyển cố định cho đơn hàng dưới 300.000đ
@@ -125,7 +125,7 @@ export default function ShippingPage() {
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold">Ngoại thành</h3>
-                          <span className="font-semibold text-primary">30.000đ - 50.000đ</span>
+                          <span className="font-semibold text-orange-500">30.000đ - 50.000đ</span>
                         </div>
                         <p className="text-muted-foreground text-sm leading-relaxed">
                           Phí vận chuyển tùy thuộc vào khoảng cách và trọng lượng đơn hàng
@@ -140,12 +140,12 @@ export default function ShippingPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3 mb-4">
-                  <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+                  <CheckCircle2 className="h-6 w-6 text-orange-500 flex-shrink-0 mt-1" />
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Quy trình giao nhận</h2>
                     <div className="space-y-4 text-muted-foreground">
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           1
                         </div>
                         <div>
@@ -157,7 +157,7 @@ export default function ShippingPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           2
                         </div>
                         <div>
@@ -169,7 +169,7 @@ export default function ShippingPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           3
                         </div>
                         <div>
@@ -179,7 +179,7 @@ export default function ShippingPage() {
                       </div>
 
                       <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-primary-foreground flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-orange-500-foreground flex items-center justify-center font-semibold text-sm">
                           4
                         </div>
                         <div>
@@ -200,22 +200,22 @@ export default function ShippingPage() {
                 <h2 className="text-xl font-bold mb-3">Lưu ý quan trọng</h2>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>
                       Vui lòng kiểm tra kỹ sản phẩm trước khi thanh toán. Nếu có vấn đề, từ chối nhận hàng và liên hệ
                       ngay với chúng tôi.
                     </span>
                   </li>
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Thời gian giao hàng có thể thay đổi trong các dịp lễ, Tết hoặc thời tiết xấu.</span>
                   </li>
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Đảm bảo số điện thoại và địa chỉ chính xác để nhận hàng nhanh chóng.</span>
                   </li>
                   <li className="flex gap-2 leading-relaxed">
-                    <span className="text-primary">•</span>
+                    <span className="text-orange-500">•</span>
                     <span>Mọi thắc mắc vui lòng liên hệ hotline: 1900 1234 để được hỗ trợ.</span>
                   </li>
                 </ul>

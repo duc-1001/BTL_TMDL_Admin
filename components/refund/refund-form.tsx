@@ -31,6 +31,7 @@ import { RefundFormValues, refundSchema } from "@/schemas/refund.schema"
 import { deleteFile, uploadFile } from "@/services/upload.service"
 import { CreateRefundPayload, ReasonCode } from "@/types/refund"
 import { toast } from "sonner"
+import { getRefundableItems } from "@/services/order.service"
 
 export const REFUND_REASONS = [
     { code: "DEFECTIVE", label: "Sản phẩm bị lỗi" },
@@ -69,6 +70,12 @@ interface RefundFormProps {
 export default function RefundForm({ order, tab, handleRefundSuccess, setCodeError, token }: RefundFormProps) {
     const [images, setImages] = useState<File[]>([])
     const [refundItems, setRefundItems] = useState<RefundItemUI[]>([])
+
+    const { data: refundableItems } = useQuery({
+        queryKey: ["refundableItems", order.orderCode],
+        queryFn: () => getRefundableItems(order.orderCode, token),
+        enabled: !!order.orderCode && tab === "refund",
+    })
 
     const form = useForm<RefundFormValues>({
         resolver: zodResolver(refundSchema),
@@ -117,13 +124,13 @@ export default function RefundForm({ order, tab, handleRefundSuccess, setCodeErr
             accountNumber: "",
             accountHolder: "",
             items:
-                order.items?.map((it) => ({
+                refundableItems?.map((it) => ({
                     productId: it.productId || "",
                     quantity: 0,
                 })) || [],
         })
         setImages([])
-    }, [order, reset])
+    }, [refundableItems, reset])
 
     const type = watch("type")
     const reasonCode = watch("reasonCode")
@@ -131,22 +138,21 @@ export default function RefundForm({ order, tab, handleRefundSuccess, setCodeErr
 
     // Khởi tạo refundItems cho UI (giữ nguyên logic cũ)
     useEffect(() => {
-        const initial = order.items.map((item) => ({
+        if (!refundableItems) return
+        const initial = refundableItems?.map((item) => ({
             productId: item.productId || "",
             name: item.name,
             quantity: 0,
-            maxQuantity: item.quantity,
-            image: item.image?.url,
+            maxQuantity: item.refundableQuantity,
+            image: item.image,
             price: item.price,
         }))
         setRefundItems(initial)
-
-        // Đồng bộ quantity vào form
         setValue(
             "items",
             initial.map((i) => ({ productId: i.productId, quantity: 0 }))
         )
-    }, [order, setValue])
+    }, [refundableItems, setValue])
 
     // Khi thay đổi quantity trong UI → cập nhật form
     const updateQty = (productId: string, delta: number) => {
@@ -231,7 +237,6 @@ export default function RefundForm({ order, tab, handleRefundSuccess, setCodeErr
             )
             const payload: CreateRefundPayload = {
                 orderCode: order.orderCode,
-                type: data.type,
                 reasonCode: data.reasonCode as ReasonCode,
                 reason: data.reasonCode === "OTHER" ? data.reason?.trim() ?? "" : undefined,
                 note: data.note?.trim() ?? "",
@@ -284,16 +289,13 @@ export default function RefundForm({ order, tab, handleRefundSuccess, setCodeErr
         queryFn: () =>
             calculateRefund({
                 orderCode: order.orderCode,
-                type,
-                items:
-                    type === "partial"
-                        ? refundItems
-                            .filter((i) => i.quantity > 0)
-                            .map((i) => ({ productId: i.productId, quantity: i.quantity }))
-                        : undefined,
+                items: type === "partial" ?
+                    refundItems.filter((i) => i.quantity > 0).map((i) => ({ productId: i.productId, quantity: i.quantity }))
+                    :
+                    (refundableItems ?? []).map((i) => ({ productId: i.productId, quantity: i.refundableQuantity })),
                 viewToken: token
             }),
-        enabled: tab === "refund" && !!order.orderCode && order.refundStatus === "none" ,
+        enabled: tab === "refund" && !!order.orderCode && order.refundStatus === "none",
     })
 
     if (error && typeof error === "object") {

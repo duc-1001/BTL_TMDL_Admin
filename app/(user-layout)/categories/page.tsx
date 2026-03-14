@@ -129,7 +129,7 @@ export default function CategoriesPage() {
 
                       <Button
                         variant="ghost"
-                        className="w-full group-hover:bg-orange-600 group-hover:text-primary-foreground transition-all duration-300"
+                        className="w-full group-hover:bg-orange-600 group-hover:text-orange-500-foreground transition-all duration-300"
                       >
                         Xem sản phẩm
                         <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

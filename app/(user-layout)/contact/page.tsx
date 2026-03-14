@@ -125,7 +125,7 @@ export default function ContactPage() {
                 <CardContent className="p-6">
                   <div className="flex gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center shrink-0">
-                      <Mail className="h-6 w-6 text-primary" />
+                      <Mail className="h-6 w-6 text-orange-500" />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Email</h3>
@@ -136,7 +136,7 @@ export default function ContactPage() {
 
                   <div className="flex gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center shrink-0">
-                      <Phone className="h-6 w-6 text-primary" />
+                      <Phone className="h-6 w-6 text-orange-500" />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Hotline</h3>
@@ -147,7 +147,7 @@ export default function ContactPage() {
 
                   <div className="flex gap-4 mb-6">
                     <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center shrink-0">
-                      <MapPin className="h-6 w-6 text-primary" />
+                      <MapPin className="h-6 w-6 text-orange-500" />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Địa chỉ</h3>
@@ -159,7 +159,7 @@ export default function ContactPage() {
 
                   <div className="flex gap-4">
                     <div className="w-12 h-12 rounded-full bg-orange-600/10 flex items-center justify-center shrink-0">
-                      <Clock className="h-6 w-6 text-primary" />
+                      <Clock className="h-6 w-6 text-orange-500" />
                     </div>
                     <div>
                       <h3 className="font-semibold mb-1">Giờ làm việc</h3>

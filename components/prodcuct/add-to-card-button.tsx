@@ -18,7 +18,7 @@ const AddToCartButton = ({ productId, quantity }: AddToCartButtonProps) => {
     const { addItem } = useCartActions(isAuthenticated)
 
     return (
-        <Button className="flex-1 cursor-pointer" onClick={() => addItem(productId, quantity)}>
+        <Button className="flex-1 text-white cursor-pointer" onClick={() => addItem(productId, quantity)}>
             <ShoppingCart className="h-4 w-4 mr-2" />
             Thêm vào giỏ
         </Button>

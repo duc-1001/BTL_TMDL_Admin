@@ -20,7 +20,7 @@ import { queryClient } from "@/components/QueryClientProviders"
 import { set } from "zod"
 import { toast } from "sonner"
 import { PaginatedData } from "@/types/commons"
-import PaginationControls from "@/components/layout/pagination-controls"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 
 // ============ TYPE DEFINITIONS ============
 

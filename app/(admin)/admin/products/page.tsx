@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Search, Plus, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
-import PaginationControls from "@/components/layout/pagination-controls"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getAllProductsAdmin, updateProductStatus } from "@/services/product.service"
@@ -123,8 +123,8 @@ export default function ProductsPage() {
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Tồn kho</TableHead>
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Đã bán</TableHead>
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Trạng thái</TableHead>
-                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Nổi bật</TableHead>
                                     <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Hiển thị</TableHead>
+                                    <TableHead className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Nổi bật</TableHead>
                                     <TableHead className="text-right py-3 px-2 text-sm font-medium text-muted-foreground">Thao tác</TableHead>
                                 </TableRow>
                             </TableHeader>

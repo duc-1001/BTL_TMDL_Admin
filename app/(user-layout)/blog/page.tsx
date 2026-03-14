@@ -108,7 +108,7 @@ export default function BlogPage() {
         {featuredPosts.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center gap-2 mb-6">
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <TrendingUp className="h-5 w-5 text-orange-500" />
               <h2 className="text-2xl font-bold">Bài viết nổi bật</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-8">
@@ -124,7 +124,7 @@ export default function BlogPage() {
                     <Badge className="absolute top-4 left-4">{post.category}</Badge>
                   </div>
                   <CardContent className="p-6">
-                    <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors line-clamp-2 text-balance">
+                    <h3 className="text-xl font-bold mb-3 group-hover:text-orange-500 transition-colors line-clamp-2 text-balance">
                       <Link href={`/blog/${post.id}`}>{post.title}</Link>
                     </h3>
                     <p className="text-muted-foreground mb-4 line-clamp-2 text-pretty leading-relaxed">
@@ -170,7 +170,7 @@ export default function BlogPage() {
                   <Badge className="absolute top-4 left-4">{post.category}</Badge>
                 </div>
                 <CardContent className="p-6">
-                  <h3 className="text-lg font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2 text-balance">
+                  <h3 className="text-lg font-bold mb-2 group-hover:text-orange-500 transition-colors line-clamp-2 text-balance">
                     <Link href={`/blog/${post.id}`}>{post.title}</Link>
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2 text-pretty leading-relaxed">

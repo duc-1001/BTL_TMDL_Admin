@@ -22,15 +22,13 @@ import {
   ShoppingCart,
   Users,
   Settings,
-  Menu,
-  X,
   LogOut,
   Tag,
   BarChart3,
   Megaphone,
   FolderTree,
-  Slack,
   Landmark,
+  MessageSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
@@ -47,7 +45,7 @@ const navigation = [
   { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
   { name: "Hoàn trả", href: "/admin/refunds", icon: Tag },
   { name: "Khách hàng", href: "/admin/customers", icon: Users },
-
+  { name: "Đánh giá", href: "/admin/reviews", icon: MessageSquare },
   {
     name: "Marketing",
     children:
@@ -101,7 +99,7 @@ export default function AdminSidebar() {
                             className={cn(
                               "flex w-full items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                               isActive
-                                ? "bg-orange-600 text-primary-foreground"
+                                ? "bg-orange-200 text-orange-700 focus:bg-orange-200 focus:text-orange-700"
                                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
                             )}
                           >

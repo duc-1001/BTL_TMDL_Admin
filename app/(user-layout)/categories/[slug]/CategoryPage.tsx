@@ -106,7 +106,7 @@ export default function CategoryPage({ slug }: CategoryPageProps) {
                   <h3 className="font-semibold text-sm line-clamp-2 mb-1">
                     {product.name}
                   </h3>
-                  <p className="text-primary font-bold text-sm">
+                  <p className="text-orange-500 font-bold text-sm">
                     {product.price.toLocaleString()}₫
                   </p>
                 </CardContent>

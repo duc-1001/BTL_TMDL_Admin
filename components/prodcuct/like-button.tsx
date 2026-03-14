@@ -1,8 +1,8 @@
 import { Button } from '../ui/button'
 import { Heart } from 'lucide-react'
-import { HomeProduct, Product } from '@/types/product'
+import { ProductCard , Product } from '@/types/product'
 interface LikeButtonProps {
-    product: HomeProduct | Product
+    product: ProductCard  | Product
     onToggleLike: (productId: string) => void
 }
 const LikeButton = ({ product, onToggleLike }: LikeButtonProps) => {

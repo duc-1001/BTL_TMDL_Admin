@@ -1,11 +1,28 @@
 import { ApiClient } from "@/lib/apiClient";
-import { ApiResponse } from "@/types/commons";
-import { CalculateRefund,CreateRefundPayload, ListRefundItem, RefundUserDetail } from "@/types/refund";
+import { ApiResponse,PaginatedData } from "@/types/commons";
+import { CalculateRefund,CreateRefundPayload, ListRefundItem, RefundAdminDetail, RefundAdminListItem, RefundUserDetail } from "@/types/refund";
+
+//admin
+export const adminGetRefunds = async (q?: string, status?: string, reason?: string, page?: number, limit?: number) => {
+    const params: any = {};
+    if (q) params.q = q;
+    if (status) params.status = status;
+    if (reason) params.reason = reason;
+    if (page) params.page = page;
+    if (limit) params.limit = limit;
+    const response = await ApiClient.get<PaginatedData<RefundAdminListItem>>("/refunds/admin", params );
+    return response;
+}
+
+export const adminGetRefundDetails = async (refundId: string) => {
+    const response = await ApiClient.get<ApiResponse<RefundAdminDetail>>(`/refunds/admin/${refundId}`);
+    return response.data;
+}
 
 
+//user
 export const calculateRefund = async (payload: {
     orderCode: string;
-    type: string;
     items?: Array<{ productId: string; quantity: number }>
     viewToken: string
 }) => {
@@ -30,5 +47,21 @@ export const getRefundDetails = async (
 
 export const getMyRefunds = async () => {
     const response = await ApiClient.get<ApiResponse<ListRefundItem[]>>("/refunds/me");
+    return response.data;
+}
+
+export const cancelRefund = async (refundCode: string, viewToken: string) => {
+  const response = await ApiClient.patch(
+    `/refunds/${refundCode}/cancel`,
+    null,
+    {
+      params: { viewToken }
+    }
+  );
+  return response;
+};
+
+export const requestRefundViewToken = async (refundCode: string, email: string) => {
+    const response = await ApiClient.post<ApiResponse<{ viewToken: string }>>(`/refunds/${refundCode}/request-view-token`, { email });
     return response.data;
 }

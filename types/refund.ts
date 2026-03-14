@@ -1,6 +1,6 @@
 import { OrderItemSnapshot } from "./order";
 
-export type RefundStatus = "none" | "pending" | "processing" | "completed" | "rejected"
+export type RefundStatus = "pending" | "processing" | "completed" | "rejected" | "cancelled";
 
 export interface CalculateRefund {
     subtotalRefund: number;
@@ -26,6 +26,12 @@ export interface RefundImagePayload {
     imagePublicId: string;
 }
 
+export interface RefundCustomer {
+    fullName: string;
+    phone: string;
+    email: string;
+}
+
 export interface BankInfoPayload {
     bankName: string;
     accountNumber: string;
@@ -35,9 +41,6 @@ export interface BankInfoPayload {
 export interface CreateRefundPayload {
     orderCode: string;
     paymentMethod: "cod" | "banking";
-
-    type: "full" | "partial";
-
     reasonCode: ReasonCode;
     reason?: string;
 
@@ -97,7 +100,7 @@ export interface RefundSummary {
     refundCode: ReasonCode
     reason?: string
 
-    status: string
+    status: RefundStatus
     createdAt: string
 
     totalRefund: number
@@ -108,6 +111,15 @@ export interface RefundSummary {
     reasonCode: string
 
     refundDestination: "original" | "bank"
+}
+
+export type OrderRefundListItem = {
+    refundCode: string
+    status: RefundStatus
+    type: "full" | "partial"
+    createdAt: string
+    itemCount: number
+    totalRefund: number
 }
 
 export interface ListRefundItem {
@@ -123,4 +135,75 @@ export interface ListRefundItem {
     type: "full" | "partial";
     reason: string;
     viewToken: string;
+}
+
+export interface RefundableItem {
+   productId: string;
+    name: string;
+    image: string;
+    price: number;
+    orderedQuantity: number;
+    refundedQuantity: number;
+    refundableQuantity: number;
+}
+
+
+export interface RefundAdminListItem {
+  _id: string
+
+  refundCode: string
+  orderCode: string
+
+  customer?: RefundCustomer
+
+  reason?: string
+  reasonCode: ReasonCode
+
+  totalRefund: number
+
+  status: RefundStatus
+
+  createdAt: string
+}
+
+export interface RefundAdminDetail {
+  _id: string
+  refundCode: string
+
+  orderId: string
+  orderCode: string
+
+  userId?: string | null
+
+  type: "full" | "partial"
+
+  reasonCode: ReasonCode
+  reason?: string
+
+  note?: string
+
+  items: OrderItemSnapshot[]
+  images: {
+    url: string
+    imagePublicId: string
+  }[]
+
+  paymentMethod: string
+
+  refundDestination: "bank" | "original"
+
+  refundBankInfo?: BankInfoPayload | null
+
+  refundAmountData: RefundAmountData
+
+  status: RefundStatus
+
+  customer: {
+    fullName: string
+    phone: string
+    email: string
+  }
+
+  createdAt: string
+  updatedAt: string
 }

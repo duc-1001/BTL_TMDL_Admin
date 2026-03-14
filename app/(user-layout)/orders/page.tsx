@@ -10,7 +10,7 @@ import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
 import useDebounce from "@/hooks/use-debounce"
 import { getMyOrders } from "@/services/order.service"
-import PaginationControls from "@/components/layout/pagination-controls"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 import OrderCard from "@/components/order/order-card"
 import { useSelector } from "react-redux"
 import { RootState } from "@/store/store"
@@ -95,7 +95,8 @@ export default function OrdersPage() {
                 <h3 className="text-lg font-semibold mb-2">Không tìm thấy đơn hàng</h3>
                 <p className="text-sm text-muted-foreground mb-6">Bạn chưa có đơn hàng nào trong mục này</p>
                 <Button asChild className="bg-orange-500 hover:bg-orange-500/90 transition-colors duration-200">
-                  <Link href="/products">Khám phá sản phẩm</Link>
+                  <Link href="/products" className="text-white">Khám phá sản phẩm</Link>
+
                 </Button>
               </CardContent>
             </Card>
