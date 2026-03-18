@@ -24,7 +24,7 @@ export const StatusBadge = ({ status }: { status: string }) => {
       class: "bg-amber-50 text-amber-700 border border-amber-200",
     },
     completed: {
-      label: "Hoàn tiền",
+      label: "Đã hoàn tiền",
       class: "bg-emerald-50 text-emerald-700 border border-emerald-200",
     },
     rejected: {

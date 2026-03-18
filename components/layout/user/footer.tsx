@@ -45,7 +45,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/Discounts" className="hover:text-orange-500 transition-colors">
+                <Link href="/discounts" className="hover:text-orange-500 transition-colors">
                   Khuyến mãi
                 </Link>
               </li>

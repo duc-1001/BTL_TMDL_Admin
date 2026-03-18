@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -43,16 +43,51 @@ export default function LoginPage() {
       const response = await login(data.email.toLowerCase(), data.password);
       dispatch({ type: 'auth/loginSuccess', payload: { user: response.data } });
 
-      toast.success("Đăng nhập thành công")
+      toast.success("Đăng nhập thành công! Chào mừng bạn đã quay lại.")
       router.push(redirect)
-    } catch (error) {
-      toast.error("Đăng nhập thất bại. Vui lòng thử lại.")
+    } catch (error: any) {
+      toast.error(error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.")
     }
   }
 
   const handleGoogleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google/login?prompt=select_account`;
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const error = params.get("error")
+
+    if (!error) return
+
+    switch (error) {
+      case "ACCOUNT_LOCKED":
+        toast.error("Tài khoản bị khóa")
+        break
+
+      case "USE_PASSWORD_LOGIN":
+        toast.error("Email này đăng ký bằng mật khẩu")
+        break
+
+      case "GOOGLE_ACCOUNT_NO_EMAIL":
+        toast.error("Google không cung cấp email")
+        break
+
+      case "SERVER_ERROR":
+        toast.error("Lỗi server")
+        break
+
+      case "GOOGLE_OAUTH_ERROR":
+        toast.error("Lỗi xác thực Google")
+        break
+
+      default:
+        toast.error("Đăng nhập thất bại")
+    }
+
+    // 🔥 xoá query để tránh toast lại khi reload
+    // window.history.replaceState({}, document.title, "/login")
+  }, [])
 
 
   return (

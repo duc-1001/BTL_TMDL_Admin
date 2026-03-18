@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Star, Minus, Plus, Share2, Truck, Shield, RefreshCw } from "lucide-react"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useQuery } from "@tanstack/react-query"
-import { getProductBySlug, getSimilarProducts } from "@/services/product.service"
+import { getProductBySlug, getSimilarProducts, increaseProductView } from "@/services/product.service"
 import { Product } from "@/types/product"
 import { useRouter } from "next/navigation"
 import SimilarProductCard from "@/components/prodcuct/similar-product-card"
@@ -60,6 +60,32 @@ export default function ProductPage({ slug }: ProductPageProps) {
     }).format(price)
   }
   const { addItem } = useCartActions(isAuthenticated)
+
+  const hasTrackedView = useRef(false)
+
+  useEffect(() => {
+    if (!product?._id || hasTrackedView.current) return
+
+    const key = `viewed_${product._id}`
+    const lastView = localStorage.getItem(key)
+
+    const now = Date.now()
+
+    const increaseView = async () => {
+      try {
+        await increaseProductView(product._id)
+      } catch (err) {
+        console.error("Failed to increase product view:", err)
+      }
+    }
+
+    if (!lastView || now - Number(lastView) > 30 * 60 * 1000) {
+      increaseView()
+      localStorage.setItem(key, now.toString())
+    }
+
+    hasTrackedView.current = true
+  }, [product?._id])
 
 
   if (isLoadingProduct) {

@@ -1,6 +1,5 @@
 // src/types/product.ts
 
-
 export type Product = {
     _id: string
 
@@ -72,7 +71,6 @@ export type Product = {
         [key: number]: number
     }
 }
-
 
 // src/types/product-admin.ts
 
@@ -205,7 +203,7 @@ export type ProductBatch = {
     status: "active" | "expired" | "sold_out" | "near_expiry" | "disposed",
 }
 
-export type ProductCard  = {
+export type ProductCard = {
     _id: string
     name: string
     slug: string
@@ -252,3 +250,30 @@ export type ProductForSelect = {
     name: string
     image?: string
 }
+
+export type ProductAnalyticsSummary = {
+    "revenue": number
+    "revenueGrowth": number,
+
+    "orders": number
+    "ordersGrowth": number,
+
+    "views": number
+    "viewsGrowth": number,
+
+    "conversionRate": number,
+    "conversionRateGrowth": number
+}
+
+export type ProductRevenueChartItem = {
+    date: string
+    sales: number
+}
+
+export type ProductOrdersViewsChartItem = {
+    date: string
+    orders: number
+    views: number
+}
+
+

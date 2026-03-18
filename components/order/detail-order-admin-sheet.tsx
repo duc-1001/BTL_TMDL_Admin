@@ -18,7 +18,7 @@ import {
     MapPin,
     Phone
 } from 'lucide-react'
-import { formatDateTime, formatPrice, ORDER_STEPS,PAYMENT_NAME } from '@/lib/utils'
+import { formatDateTime, formatPrice, ORDER_STEPS, PAYMENT_NAME } from '@/lib/utils'
 import {
     Select,
     SelectContent,
@@ -33,6 +33,7 @@ import { OrderStatus } from '@/types/order'
 import { OrderItemRow } from './order-item-row'
 import { queryClient } from '../QueryClientProviders'
 import { toast } from 'sonner'
+import { BadgeStatusPayment } from '@/app/(admin)/admin/orders/page'
 
 interface DetailOrderAdminSheetProps {
     sheetOpen: boolean
@@ -270,35 +271,43 @@ const DetailOrderAdminSheet = ({
                     <TabsContent value="payment" className="mt-6">
                         <div className="bg-white rounded-2xl border shadow-sm p-6 space-y-5">
 
-                            {/* Section title */}
-                            <h3 className="text-lg font-semibold">Thông tin thanh toán</h3>
+                            {/* Title */}
+                            <h3 className="text-lg font-semibold">
+                                Thông tin thanh toán
+                            </h3>
 
-                            {/* Method */}
+                            {/* Payment Method */}
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">
                                     Phương thức
                                 </span>
                                 <span className="font-medium">
-                                    {PAYMENT_NAME[selectedOrderDetail.paymentMethod] || selectedOrderDetail.paymentMethod}
+                                    {PAYMENT_NAME[selectedOrderDetail.paymentMethod] ||
+                                        selectedOrderDetail.paymentMethod}
                                 </span>
                             </div>
 
                             {/* Payment Status */}
                             <div className="flex justify-between items-center">
                                 <span className="text-sm text-muted-foreground">
-                                    Trạng thái
+                                    Trạng thái thanh toán
                                 </span>
-                                <div
-                                    className={`px-3 py-1 text-xs font-semibold rounded-full transition ${selectedOrderDetail.paymentStatus === "paid"
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-red-100 text-red-700"
-                                        }`}
-                                >
-                                    {selectedOrderDetail.paymentStatus === "paid"
-                                        ? "Đã thanh toán"
-                                        : "Chưa thanh toán"}
-                                </div>
+                                {BadgeStatusPayment(selectedOrderDetail.paymentStatus)}
                             </div>
+
+                            {/* Refund Status */}
+                            {selectedOrderDetail.refundStatus !== "none" && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
+                                        Trạng thái hoàn tiền
+                                    </span>
+                                    <span className="font-medium">
+                                        {selectedOrderDetail.refundStatus === "partial"
+                                            ? "Hoàn tiền một phần"
+                                            : "Hoàn tiền toàn bộ"}
+                                    </span>
+                                </div>
+                            )}
 
                             <Separator />
 
@@ -334,6 +343,18 @@ const DetailOrderAdminSheet = ({
                                 </span>
                             </div>
 
+                            {/* Refunded */}
+                            {selectedOrderDetail.refundedAmount > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
+                                        Đã hoàn tiền
+                                    </span>
+                                    <span className="font-medium text-red-500">
+                                        - {formatPrice(selectedOrderDetail.refundedAmount)}
+                                    </span>
+                                </div>
+                            )}
+
                             <Separator />
 
                             {/* Total */}
@@ -346,7 +367,8 @@ const DetailOrderAdminSheet = ({
                                 </span>
                             </div>
 
-                            {selectedOrderDetail.paymentStatus === "unpaid" ? (
+                            {/* Paid action */}
+                            {selectedOrderDetail.paymentStatus === "unpaid" && (
                                 <Button
                                     disabled={markAsPaidMutation.isPending}
                                     onClick={() =>
@@ -357,18 +379,6 @@ const DetailOrderAdminSheet = ({
                                     {markAsPaidMutation.isPending
                                         ? "Đang xử lý..."
                                         : "Đánh dấu đã thanh toán"}
-                                </Button>
-                            ) : (
-                                <Button
-                                    disabled={revertToUnpaidMutation.isPending}
-                                    onClick={() =>
-                                        revertToUnpaidMutation.mutate(selectedOrderDetail.orderCode)
-                                    }
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                    {revertToUnpaidMutation.isPending
-                                        ? "Đang xử lý..."
-                                        : "Hoàn tác thanh toán"}
                                 </Button>
                             )}
 

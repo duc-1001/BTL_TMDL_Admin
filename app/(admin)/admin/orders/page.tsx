@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { ShoppingCart, Clock, CheckCircle2, XCircle, DollarSign, MoreVertical, Truck, Eye } from "lucide-react"
-import { useState, useMemo, } from "react"
+import { useState, useMemo, JSX, } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getOrdersAdmin, getOrderSummaryAdmin, updateBulkCancelOrderStatus, updateBulkNextOrderStatus, updateOrderStatus } from "@/services/order.service"
 import { AdminOrderListItem, AssignedStaff, OrderStatus, OrderStatusForWorkflow, PaymentStatus } from "@/types/order"
@@ -47,6 +47,24 @@ const WORKFLOW_TRANSITIONS: Record<OrderStatusForWorkflow, OrderStatus[]> = {
 
 const getValidNextStatuses = (currentStatus: OrderStatusForWorkflow): OrderStatus[] => WORKFLOW_TRANSITIONS[currentStatus] || []
 
+export const BadgeStatusPayment: (status: PaymentStatus) => JSX.Element = (status) => {
+    if (status === "paid") {
+        return <Badge className="bg-green-100 text-green-800">Đã thanh toán</Badge>
+    }
+    else if (status === "refunded") {
+        return <Badge className="bg-orange-100 text-orange-800">Đã hoàn tiền</Badge>
+    }
+    else if (status === "partially_refunded") {
+        return <Badge className="bg-yellow-100 text-yellow-800">Hoàn tiền một phần</Badge>
+    }
+    else if (status === "failed") {
+        return <Badge className="bg-red-100 text-red-800">Thanh toán thất bại</Badge>
+    }
+    else if (status === "expired") {
+        return <Badge className="bg-gray-100 text-gray-800">Đã hết hạn</Badge>
+    }
+    return <Badge className="bg-red-100 text-red-800">Chưa thanh toán</Badge>
+}
 
 // ============ MAIN COMPONENT ============
 export default function OrdersPage() {
@@ -510,7 +528,9 @@ export default function OrdersPage() {
                                             <td className="px-4 py-3">{order.customer.phone}</td>
                                             <td className="px-4 py-3 text-xs text-muted-foreground">{formatDateTime(order.createdAt)}</td>
                                             <td className="px-4 py-3 text-right font-semibold">{formatPrice(order.totalAmount)}</td>
-                                            <td className="px-4 py-3"><Badge className={order.paymentStatus === "paid" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>{order.paymentStatus === "paid" ? "Đã TT" : "Chưa TT"}</Badge></td>
+                                            <td className="px-4 py-3">
+                                                {BadgeStatusPayment(order.paymentStatus)}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <Select
                                                     value={order.status}

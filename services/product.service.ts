@@ -1,7 +1,7 @@
 import { ApiClient } from "@/lib/apiClient";
 import { buildFormData } from "@/lib/formData";
 import { ApiResponse, PaginatedData } from "@/types/commons";
-import { BasicProductForm, BatchProductStatus, ProductCard, Product, ProductAdmin, ProductBatch, ProductEdit, BasicProductCard, ProductForSelect } from "@/types/product";
+import { BasicProductForm, BatchProductStatus, ProductCard, Product, ProductAdmin, ProductBatch, ProductEdit, BasicProductCard, ProductForSelect, ProductAnalyticsSummary, ProductRevenueChartItem, ProductOrdersViewsChartItem } from "@/types/product";
 import { Review } from "@/types/review";
 
 export const createProduct = async (data: any) => {
@@ -76,6 +76,29 @@ export const getProductForSelect = async (q?: string, limit?: number, category_i
     return response.data;
 }
 
+export const getAnalyticsSummaryProduct = async (productId: string) => {
+    const response = await ApiClient.get<ApiResponse<ProductAnalyticsSummary>>(`/products/admin/${productId}/analytics/summary`);
+    return response.data;
+}
+
+export const getAnalyticsRevenueProduct = async (productId: string,days: number) => {
+    const params = { days }
+    const response = await ApiClient.get<ApiResponse<ProductRevenueChartItem[]>>(`/products/admin/${productId}/analytics/revenue`, params);
+    return response.data;
+}
+
+export const getProductOrdersViewsChart = async (productId: string, days: number) => {
+    const params = { days }
+    const response = await ApiClient.get<ApiResponse<ProductOrdersViewsChartItem[]>>(`/products/admin/${productId}/analytics/traffic`, params);
+    return response.data;
+}
+
+export const getProductPerformance = async (productId: string, days: number) => {
+    const params = { days }
+    const response = await ApiClient.get<ApiResponse<{ searchRate: number, addToCartRate: number, wishlistRate: number }>>(`/products/admin/${productId}/analytics/performance`, params);
+    return response.data;
+}
+
 //user
 export const getProducts = async (q?: string, category?: string[], page: number = 1, limit: number = 20, sort: string = "createdAt_desc",minPrice?:number,maxPrice?:number) => {
     const params: any = { q, page, limit, sort }
@@ -130,3 +153,9 @@ export const getProductReviews = async (productId: string, page: number, limit: 
     const response = await ApiClient.get<PaginatedData<Review>>(`/products/${productId}/reviews`, params);
     return response;
 }
+
+export const increaseProductView = async (productId: string) => {
+    const response = await ApiClient.post(`/products/${productId}/view`);
+    return response;
+}
+

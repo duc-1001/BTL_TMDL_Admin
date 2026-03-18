@@ -225,6 +225,9 @@ export interface AdminOrderDetail {
   completedAt?: string
   cancelledAt?: string
   refundedAt?: string
+
+  refundedAmount: number
+  refundStatus: RefundStatus
 }
 
 

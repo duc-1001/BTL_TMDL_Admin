@@ -28,9 +28,9 @@ interface DetailAdminRefundSheetProps {
   sheetOpen: boolean
   setSheetOpen: React.Dispatch<React.SetStateAction<boolean>>
   refundId: string | null
-  setConfirmAction: (
-    action: { type: "reject" | "process" | "complete"; refundId: string } | null
-  ) => void
+  openRejectDialog: (id: string) => void
+  openProcessConfirm: (id: string) => void
+  openCompleteConfirm: (id: string) => void
 }
 
 const refundMethodLabels: Record<string, string> = {
@@ -42,7 +42,9 @@ const DetailAdminRefundSheet = ({
   sheetOpen,
   setSheetOpen,
   refundId,
-  setConfirmAction,
+  openProcessConfirm,
+  openCompleteConfirm,
+  openRejectDialog
 }: DetailAdminRefundSheetProps) => {
   const { data, isLoading } = useQuery({
     queryKey: ["refundDetails", refundId],
@@ -84,10 +86,7 @@ const DetailAdminRefundSheet = ({
                       variant="outline"
                       className="border-red-200 hover:text-red-500 text-red-600 hover:bg-red-50"
                       onClick={() =>
-                        setConfirmAction({
-                          type: "reject",
-                          refundId: data._id,
-                        })
+                        openRejectDialog(data._id)
                       }
                     >
                       Từ chối
@@ -96,10 +95,7 @@ const DetailAdminRefundSheet = ({
                     <Button
                       className="bg-blue-600 hover:bg-blue-700 text-white hover:text-white"
                       onClick={() =>
-                        setConfirmAction({
-                          type: "process",
-                          refundId: data._id,
-                        })
+                        openProcessConfirm(data._id)
                       }
                     >
                       Bắt đầu xử lý
@@ -113,10 +109,7 @@ const DetailAdminRefundSheet = ({
                       variant="outline"
                       className="border-red-200 hover:text-red-500 text-red-600 hover:bg-red-50"
                       onClick={() =>
-                        setConfirmAction({
-                          type: "reject",
-                          refundId: data._id,
-                        })
+                        openRejectDialog(data._id)
                       }
                     >
                       Từ chối
@@ -125,10 +118,7 @@ const DetailAdminRefundSheet = ({
                     <Button
                       className="bg-green-600 hover:bg-green-700 text-white hover:text-white"
                       onClick={() =>
-                        setConfirmAction({
-                          type: "complete",
-                          refundId: data._id,
-                        })
+                        openCompleteConfirm(data._id)
                       }
                     >
                       Hoàn tất

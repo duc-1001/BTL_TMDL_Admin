@@ -1,13 +1,9 @@
 'use client'
-import { Switch } from "@/components/ui/switch"
 import { SelectItem } from "@/components/ui/select"
 import { SelectContent } from "@/components/ui/select"
 import { SelectValue } from "@/components/ui/select"
 import { SelectTrigger } from "@/components/ui/select"
 import { Select } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,42 +11,51 @@ import { ArrowLeft, TrendingUp, ShoppingCart, Eye, DollarSign, AlertCircle } fro
 import Link from "next/link"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { useQuery } from "@tanstack/react-query"
-import { getBatchProductStatus, getProductBasicInfo } from "@/services/product.service"
+import { getAnalyticsRevenueProduct, getAnalyticsSummaryProduct, getBatchProductStatus, getProductBasicInfo, getProductOrdersViewsChart, getProductPerformance } from "@/services/product.service"
 import { formatPrice } from "@/lib/utils"
 
-// Mock data for sales metrics
-const salesData = [
-    { date: "1/1", sales: 45000, orders: 12, views: 324, conversion: 3.7 },
-    { date: "1/2", sales: 52000, orders: 14, views: 387, conversion: 3.6 },
-    { date: "1/3", sales: 48000, orders: 13, views: 356, conversion: 3.7 },
-    { date: "1/4", sales: 61000, orders: 16, views: 432, conversion: 3.7 },
-    { date: "1/5", sales: 55000, orders: 15, views: 401, conversion: 3.7 },
-    { date: "1/6", sales: 67000, orders: 18, views: 478, conversion: 3.8 },
-    { date: "1/7", sales: 72000, orders: 19, views: 521, conversion: 3.6 },
-]
-
-const topVariants = [
-    { name: "Size 100g", sold: 245, revenue: 6125000 },
-    { name: "Size 200g", sold: 189, revenue: 5670000 },
-    { name: "Size 500g", sold: 87, revenue: 3480000 },
-]
 interface ProductDetailPageProps {
     id: string
 }
 
 export default function ProductDetailPage({ id }: ProductDetailPageProps) {
-    const {
-        data: productBasicInfo
-    } = useQuery({
+    const { data: productBasicInfo } = useQuery({
         queryKey: ['admin-product-basic-info', id],
         queryFn: () => getProductBasicInfo(id),
+        enabled: !!id,
     })
-    const {
-        data: batchProductStatus
-    } = useQuery({
+    const { data: batchProductStatus } = useQuery({
         queryKey: ['admin-batch-product-status', id],
         queryFn: () => getBatchProductStatus(id),
+        enabled: !!id,
     })
+    const { data: analyticsSummary } = useQuery({
+        queryKey: ['admin-analytics-summary-product', id],
+        queryFn: () => getAnalyticsSummaryProduct(id),
+        enabled: !!id,
+    })
+
+    const [revenueDays, setRevenueDays] = useState(7)
+    const { data: revenueChartData } = useQuery({
+        queryKey: ['admin-analytics-revenue-product', id, revenueDays],
+        queryFn: () => getAnalyticsRevenueProduct(id, revenueDays),
+        enabled: !!id,
+    })
+
+    const [trafficDays, setTrafficDays] = useState(7)
+    const { data: salesData } = useQuery({
+        queryKey: ['admin-analytics-traffic-product', id, trafficDays],
+        queryFn: () => getProductOrdersViewsChart(id, trafficDays),
+        enabled: !!id,
+    })
+
+    const [performanceDays, setPerformanceDays] = useState(7)
+    const { data: performanceData } = useQuery({
+        queryKey: ['admin-analytics-performance-product', id, performanceDays],
+        queryFn: () => getProductPerformance(id, performanceDays),
+        enabled: !!id,
+    })
+
     return (
         <div>
             <div className="space-y-6">
@@ -74,8 +79,8 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">1,854,000 ₫</div>
-                            <p className="text-xs text-muted-foreground">+12% so với tháng trước</p>
+                            <div className="text-2xl font-bold">{analyticsSummary?.revenue?.toLocaleString()} ₫</div>
+                            <p className="text-xs text-muted-foreground">{analyticsSummary?.revenueGrowth?.toFixed(2)}% so với tháng trước</p>
                         </CardContent>
                     </Card>
 
@@ -85,8 +90,8 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">521</div>
-                            <p className="text-xs text-muted-foreground">+8% so với tháng trước</p>
+                            <div className="text-2xl font-bold">{analyticsSummary?.orders?.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">{analyticsSummary?.ordersGrowth?.toFixed(2)}% so với tháng trước</p>
                         </CardContent>
                     </Card>
 
@@ -96,8 +101,8 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                             <Eye className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">12,847</div>
-                            <p className="text-xs text-muted-foreground">+15% so với tháng trước</p>
+                            <div className="text-2xl font-bold">{analyticsSummary?.views?.toLocaleString()}</div>
+                            <p className="text-xs text-muted-foreground">{analyticsSummary?.viewsGrowth?.toFixed(2)}% so với tháng trước</p>
                         </CardContent>
                     </Card>
 
@@ -107,8 +112,8 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">4.05%</div>
-                            <p className="text-xs text-muted-foreground">+0.15% so với tháng trước</p>
+                            <div className="text-2xl font-bold">{analyticsSummary?.conversionRate?.toFixed(2)}%</div>
+                            <p className="text-xs text-muted-foreground">{analyticsSummary?.conversionRateGrowth?.toFixed(2)}% so với tháng trước</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -119,7 +124,7 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                         <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                         <div>
                             <h3 className="font-semibold text-yellow-900">Cảnh báo tồn kho</h3>
-                            <p className="text-sm text-yellow-800">Tồn kho hiện tại là 152 sản phẩm. Cân nhắc tạo đơn hàng mới nếu bán chạy tiếp tục.</p>
+                            <p className="text-sm text-yellow-800">Tồn kho hiện tại là {productBasicInfo?.stock?.toLocaleString()} sản phẩm. Cân nhắc tạo đơn hàng mới nếu bán chạy tiếp tục.</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -128,12 +133,24 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                     <div className="lg:col-span-2 space-y-6">
                         {/* Revenue Chart */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Doanh thu hàng ngày</CardTitle>
+                            <CardHeader className="flex items-center justify-between">
+                                <div className="font-medium ">Doanh thu hàng ngày</div>
+                                <Select value={revenueDays.toString()} onValueChange={(value) => setRevenueDays(parseInt(value))}>
+                                    <SelectTrigger className="w-[100px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value="7">7 ngày</SelectItem>
+                                        <SelectItem value="30">30 ngày</SelectItem>
+                                        {/* <SelectItem value="90">90 ngày</SelectItem>
+                                        <SelectItem value="180">180 ngày</SelectItem>
+                                        <SelectItem value="365">1 năm</SelectItem> */}
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
-                                    <LineChart data={salesData}>
+                                    <LineChart data={revenueChartData}>
                                         <CartesianGrid strokeDasharray="3 3" />
                                         <XAxis dataKey="date" />
                                         <YAxis />
@@ -146,8 +163,20 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                         </Card>
                         {/* Orders & Views */}
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Đơn hàng & Lượt xem</CardTitle>
+                            <CardHeader className="flex items-center justify-between">
+                                <div className="font-medium ">Đơn hàng & Lượt xem</div>
+                                <Select value={trafficDays.toString()} onValueChange={(value) => setTrafficDays(parseInt(value))}>
+                                    <SelectTrigger className="w-[100px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value="7">7 ngày</SelectItem>
+                                        <SelectItem value="30">30 ngày</SelectItem>
+                                        {/* <SelectItem value="90">90 ngày</SelectItem>
+                                        <SelectItem value="180">180 ngày</SelectItem>
+                                        <SelectItem value="365">1 năm</SelectItem> */}
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={300}>
@@ -165,37 +194,49 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Hiệu suất</CardTitle>
+                            <CardHeader className="flex items-center justify-between">
+                                <div className="font-medium">Hiệu suất</div>
+                                <Select value={performanceDays.toString()} onValueChange={(value) => setPerformanceDays(parseInt(value))}>
+                                    <SelectTrigger className="w-[100px]">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" sideOffset={4}>
+                                        <SelectItem value="7">7 ngày</SelectItem>
+                                        <SelectItem value="30">30 ngày</SelectItem>
+                                        {/* <SelectItem value="90">90 ngày</SelectItem>
+                                        <SelectItem value="180">180 ngày</SelectItem>
+                                        <SelectItem value="365">1 năm</SelectItem> */}
+                                    </SelectContent>
+                                </Select>
                             </CardHeader>
                             <CardContent className="space-y-4 text-sm">
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="text-muted-foreground">Tỉ lệ tìm kiếm</p>
-                                        <p className="font-medium">8.4%</p>
+                                        <p className="font-medium">{performanceData?.searchRate}%</p>
                                     </div>
                                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                        <div className="h-full bg-primary" style={{ width: "84%" }} />
+                                        <div className="h-full bg-primary" style={{ width: `${performanceData?.searchRate || 0}%` }} />
                                     </div>
                                 </div>
 
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="text-muted-foreground">Tỉ lệ giỏ hàng</p>
-                                        <p className="font-medium">6.2%</p>
+                                        <p className="font-medium">{performanceData?.addToCartRate}%</p>
                                     </div>
                                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-500" style={{ width: "62%" }} />
+                                        <div className="h-full bg-blue-500" style={{ width: `${performanceData?.addToCartRate || 0}%` }} />
                                     </div>
                                 </div>
 
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <p className="text-muted-foreground">Tỉ lệ yêu thích</p>
-                                        <p className="font-medium">12.1%</p>
+                                        <p className="font-medium">{performanceData?.wishlistRate}%</p>
                                     </div>
                                     <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                        <div className="h-full bg-red-500" style={{ width: "121%" }} />
+                                        <div className="h-full bg-red-500" style={{ width: `${performanceData?.wishlistRate || 0}%` }} />
                                     </div>
                                 </div>
                             </CardContent>

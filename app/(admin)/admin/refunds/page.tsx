@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, use } from "react"
 import {
   Card,
   CardContent,
@@ -32,18 +32,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import {
-  Eye,
-  MoreVertical
-} from "lucide-react"
-import { useQuery } from "@tanstack/react-query"
-import { adminGetRefunds } from "@/services/refund.service"
+import { Eye, MoreVertical } from "lucide-react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { adminGetRefunds, adminUpdateRefundStatus } from "@/services/refund.service"
 import useDebounce from "@/hooks/use-debounce"
 import { useRouter } from "next/navigation"
 import { ReasonCode, RefundAdminListItem, RefundStatus } from "@/types/refund"
 import { formatTimeAgo } from "@/lib/time"
 import { REFUND_REASONS } from "@/components/refund/refund-form"
 import DetailAdminRefundSheet from "@/components/refund/detail-admin-refund-sheet"
+import { toast } from "sonner"
+import PaginationControls from "@/components/layout/pagination-controls-admin"
 
 export const statusLabels: Record<RefundStatus, string> = {
   pending: "Chờ xử lý",
@@ -61,9 +60,10 @@ export const statusColors: Record<RefundStatus, string> = {
   cancelled: "bg-gray-100 text-gray-800",
 }
 
-
 export default function RefundsPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const [errorCode, setErrorCode] = useState<any>(null)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<RefundStatus | "all">("all")
   const [reasonFilter, setReasonFilter] = useState<ReasonCode | "all">("all")
@@ -72,44 +72,41 @@ export default function RefundsPage() {
 
   const q = useDebounce(search, 500)
 
-  const { data, error } = useQuery({
+  const { data, error, isLoading } = useQuery({
     queryKey: ["adminRefunds", q, statusFilter, reasonFilter, page, itemsPerPage],
-    queryFn: async () => adminGetRefunds(q, statusFilter, reasonFilter, page, itemsPerPage),
+    queryFn: () => adminGetRefunds(q, statusFilter, reasonFilter, page, itemsPerPage),
   })
 
   useEffect(() => {
     if (error) {
       const errCode = (error as any)?.code
-      if (errCode === "UNAUTHORIZED" || errCode === "PERMISSION_DENIED") {
-        router.push("/login")
-      }
+      setErrorCode(errCode)
     }
-  }, [error])
+  }, [error, router])
 
-  // Filtering & Pagination
+  useEffect(() => {
+    if (errorCode === "UNAUTHORIZED" || errorCode === "PERMISSION_DENIED") {
+      router.push("/login")
+    }
+  }, [errorCode])
 
-  const totalPages = useMemo(() => {
-    if (!data) return 1
-    return data.pagination.totalPages
-  }, [data])
-
-  const totalItems = useMemo(() => {
-    if (!data) return 0
-    return data.pagination.total
-  }, [data])
-
-  const refunds = useMemo(() => {
-    if (!data) return []
-    return data.data
-  }, [data])
+  const totalPages = data?.pagination.totalPages ?? 1
+  const totalItems = data?.pagination.total ?? 0
+  const refunds = data?.data ?? []
 
   const [selected, setSelected] = useState<string | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
 
+  // Dialog xác nhận chung (process, complete)
   const [confirmAction, setConfirmAction] = useState<{
-    type: "process" | "reject" | "complete"
+    type: "process" | "complete"
     refundId: string
   } | null>(null)
+
+  // Dialog từ chối + nhập lý do
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false)
+  const [rejectRefundId, setRejectRefundId] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState("")
 
   const formatVND = (num: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(num)
@@ -124,18 +121,65 @@ export default function RefundsPage() {
     return { total, pending, completed, totalAmount }
   }, [data])
 
-  // Status Actions
-  const updateStatus = (id: string, newStatus: RefundStatus) => {
-    if (!confirmAction) return
-    if(newStatus === "processing") handleProcess(id)
+  // ── Hàm cập nhật trạng thái chung ───────────────────────────────────────
+  const updateRefundStatus = async (
+    refundId: string,
+    newStatus: RefundStatus,
+    reason?: string
+  ) => {
+    try {
+      const response = await adminUpdateRefundStatus(refundId, newStatus, reason)
+
+      if (response.data) {
+        toast.success(`Yêu cầu đã được cập nhật thành "${statusLabels[newStatus]}"`)
+        // Làm mới danh sách
+        queryClient.invalidateQueries({ queryKey: ["adminRefunds", q, statusFilter, reasonFilter, page, itemsPerPage] })
+        queryClient.invalidateQueries({ queryKey: ["refundDetails", refundId] })
+      }
+    } catch (err: any) {
+      setErrorCode(err.code)
+      toast.error(err.message || "Không thể cập nhật trạng thái hoàn tiền")
+    }
+  }
+
+  // ── Xử lý các hành động ─────────────────────────────────────────────────
+  const handleProcess = (refundId: string) => {
+    updateRefundStatus(refundId, "processing")
     setConfirmAction(null)
   }
 
-  const handleProcess = (id: string) => updateStatus(id, "processing")
-  const handleComplete = (id: string) => updateStatus(id, "completed")
-  const handleReject = (id: string) => updateStatus(id, "rejected")
+  const handleComplete = (refundId: string) => {
+    updateRefundStatus(refundId, "completed")
+    setConfirmAction(null)
+  }
 
-  // ── Render ────────────────────────────────────────────────
+  const handleReject = () => {
+    if (!rejectRefundId || !rejectReason.trim()) {
+      toast.error("Vui lòng nhập lý do từ chối")
+      return
+    }
+
+    updateRefundStatus(rejectRefundId, "rejected", rejectReason.trim())
+    setRejectDialogOpen(false)
+    setRejectReason("")
+    setRejectRefundId(null)
+  }
+
+  const openRejectDialog = (id: string) => {
+    setRejectRefundId(id)
+    setRejectReason("")
+    setRejectDialogOpen(true)
+  }
+
+  const openProcessConfirm = (id: string) => {
+    setConfirmAction({ type: "process", refundId: id })
+  }
+
+  const openCompleteConfirm = (id: string) => {
+    setConfirmAction({ type: "complete", refundId: id })
+  }
+
+  // ── Render ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
@@ -147,7 +191,7 @@ export default function RefundsPage() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats */}
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Tổng yêu cầu" value={stats.total} />
           <StatCard title="Chờ xử lý" value={stats.pending} color="text-yellow-600" />
@@ -171,14 +215,14 @@ export default function RefundsPage() {
               <Select
                 value={statusFilter}
                 onValueChange={(v) => {
-                  setStatusFilter(v as any)
+                  setStatusFilter(v as RefundStatus | "all")
                   setPage(1)
                 }}
               >
                 <SelectTrigger className="w-44">
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
-                <SelectContent position="popper" sideOffset={4}>
+                <SelectContent>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="pending">Chờ xử lý</SelectItem>
                   <SelectItem value="processing">Đang xử lý</SelectItem>
@@ -190,14 +234,14 @@ export default function RefundsPage() {
               <Select
                 value={reasonFilter}
                 onValueChange={(v) => {
-                  setReasonFilter(v as any)
+                  setReasonFilter(v as ReasonCode | "all")
                   setPage(1)
                 }}
               >
                 <SelectTrigger className="w-44">
                   <SelectValue placeholder="Lý do" />
                 </SelectTrigger>
-                <SelectContent position="popper" sideOffset={4}>
+                <SelectContent>
                   <SelectItem value="all">Tất cả lý do</SelectItem>
                   {REFUND_REASONS.map((r) => (
                     <SelectItem key={r.code} value={r.code}>
@@ -232,8 +276,8 @@ export default function RefundsPage() {
                     <td className="px-4 py-3 font-medium">{refund.refundCode}</td>
                     <td className="px-4 py-3">{refund.orderCode}</td>
                     <td className="px-4 py-3">
-                      <div className="font-medium">{refund.customer?.fullName}</div>
-                      <div className="text-xs text-muted-foreground">{refund.customer?.phone}</div>
+                      <div className="font-medium">{refund.customer?.fullName || "—"}</div>
+                      <div className="text-xs text-muted-foreground">{refund.customer?.phone || "—"}</div>
                     </td>
                     <td className="px-4 py-3">{refund.reason}</td>
                     <td className="px-4 py-3 text-right font-semibold">
@@ -268,12 +312,18 @@ export default function RefundsPage() {
 
                           {refund.status === "pending" && (
                             <>
-                              <DropdownMenuItem onClick={() => setConfirmAction({ type: "process", refundId: refund._id })}>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  openProcessConfirm(refund._id)
+                                }
+                              >
                                 Bắt đầu xử lý
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600 focus:text-red-600"
-                                onClick={() => setConfirmAction({ type: "reject", refundId: refund._id })}
+                                onClick={() => {
+                                  openRejectDialog(refund._id)
+                                }}
                               >
                                 Từ chối
                               </DropdownMenuItem>
@@ -282,12 +332,18 @@ export default function RefundsPage() {
 
                           {refund.status === "processing" && (
                             <>
-                              <DropdownMenuItem onClick={() => setConfirmAction({ type: "complete", refundId: refund._id })}>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  openCompleteConfirm(refund._id)
+                                }
+                              >
                                 Hoàn tất hoàn tiền
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600 focus:text-red-600"
-                                onClick={() => setConfirmAction({ type: "reject", refundId: refund._id })}
+                                onClick={() => {
+                                  openRejectDialog(refund._id)
+                                }}
                               >
                                 Từ chối
                               </DropdownMenuItem>
@@ -308,30 +364,46 @@ export default function RefundsPage() {
             </table>
           </div>
 
-          {/* Pagination */}
+          {/* Pagination (bạn có thể thêm component Pagination ở đây) */}
+          {/* Ví dụ: <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} /> */}
         </Card>
 
-        {/* Detail Sheet */}
+        {
+          totalItems > 10 && (
+            <div className="mt-3">
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                setCurrentPage={setPage}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+              />
+            </div>
+          )
+        }
+        {/* Sheet chi tiết */}
         <DetailAdminRefundSheet
           refundId={selected}
           sheetOpen={sheetOpen}
           setSheetOpen={setSheetOpen}
-          setConfirmAction={setConfirmAction}
+          openRejectDialog={openRejectDialog}
+          openProcessConfirm={openProcessConfirm}
+          openCompleteConfirm={openCompleteConfirm}
         />
 
-        {/* Confirmation Dialog */}
+        {/* Dialog xác nhận process / complete */}
         <AlertDialog open={!!confirmAction} onOpenChange={() => setConfirmAction(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
                 {confirmAction?.type === "process" && "Xác nhận bắt đầu xử lý?"}
-                {confirmAction?.type === "reject" && "Xác nhận từ chối?"}
                 {confirmAction?.type === "complete" && "Xác nhận hoàn tất hoàn tiền?"}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 Hành động này sẽ thay đổi trạng thái yêu cầu hoàn tiền.
-                {confirmAction?.type === "reject" && " Khách hàng sẽ nhận thông báo từ chối."}
-                {confirmAction?.type === "complete" && " Số tiền sẽ được hoàn theo phương thức đã chọn."}
+                {confirmAction?.type === "complete" &&
+                  " Số tiền sẽ được hoàn theo phương thức đã chọn."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -341,14 +413,47 @@ export default function RefundsPage() {
                   if (!confirmAction) return
                   const { type, refundId } = confirmAction
                   if (type === "process") handleProcess(refundId)
-                  else if (type === "reject") handleReject(refundId)
-                  else if (type === "complete") handleComplete(refundId)
+                  if (type === "complete") handleComplete(refundId)
                 }}
-                className={confirmAction?.type === "reject" ? "bg-red-600 hover:bg-red-700" : ""}
+                className="bg-blue-600 hover:bg-blue-700 text-white hover:text-white"
               >
-                {confirmAction?.type === "process" && "Xử lý"}
-                {confirmAction?.type === "reject" && "Từ chối"}
-                {confirmAction?.type === "complete" && "Hoàn tất"}
+                {confirmAction?.type === "process" ? "Xử lý" : "Hoàn tất"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Dialog từ chối + nhập lý do */}
+        <AlertDialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Từ chối yêu cầu hoàn tiền</AlertDialogTitle>
+              <AlertDialogDescription>
+                Vui lòng nhập lý do từ chối. Lý do này sẽ được gửi đến khách hàng qua email hoặc thông báo.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="py-4">
+              <label htmlFor="reject-reason" className="mb-2 block text-sm font-medium">
+                Lý do từ chối <span className="text-red-600">*</span>
+              </label>
+              <Input
+                id="reject-reason"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Ví dụ: Sản phẩm đã sử dụng, không đủ điều kiện hoàn trả..."
+                className="mt-1"
+              />
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Hủy</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={!rejectReason.trim()}
+                className="bg-red-600 hover:bg-red-700"
+                onClick={handleReject}
+              >
+                Xác nhận từ chối
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -358,7 +463,6 @@ export default function RefundsPage() {
   )
 }
 
-// Helper component
 function StatCard({
   title,
   value,
