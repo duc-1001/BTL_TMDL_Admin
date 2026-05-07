@@ -2,44 +2,30 @@ import { CategoryForSelect } from "./category";
 
 // Discount.types.ts
 export interface DiscountAdmin {
-    _id: string;                    // ObjectId as string
-    code: string;                  // mã khuyến mãi duy nhất
-    name: string;                   // tên khuyến mãi
-    description: string;           // mô tả chi tiết
-    type: DiscountType;            // loại khuyến mãi
-    image: string;                 // URL ảnh khuyến mãi
-
-    // Điều kiện áp dụng
-    value: number;                  // giá trị giảm (%, số tiền cố định...)
-    minOrderValue: number;         // đơn tối thiểu để áp dụng
-    maxDiscountValue: number;     // giới hạn giảm tối đa (nếu là %)
-
-    applyTo: DiscountApplyTo;
-    applyToAllCategories: boolean;
-
-    // Thời gian
-    startDate: string;      // ISO string hoặc null (vô thời hạn bắt đầu)
-    endDate: string;        // ISO string hoặc null (vô thời hạn kết thúc)
-
-    // Giới hạn sử dụng
-    maxUsageCount: number;         // tổng lượt dùng tối đa (0 = không giới hạn)
-    usageCount: number;             // đã dùng bao nhiêu lần
-    maxUsagePerUser: number;          // lượt dùng tối đa mỗi user (0 = không giới hạn)
-
-    // Trạng thái & flags
+    _id: string;
+    code: string;
+    name: string;
+    description: string;
+    type: DiscountType; // chỉ còn 'percentage' | 'fixed'
+    image: string;
+    value: number;
+    minOrderValue: number;
+    maxDiscountValue: number;
+    applyTo: DiscountApplyTo; // chỉ còn 'order'
+    applyToAllCategories: true;
+    applicableProducts: [];
+    applicableCategories: [];
+    startDate: string;
+    endDate: string;
+    maxUsageCount: number;
+    usageCount: number;
+    maxUsagePerUser: number;
     isActive: boolean;
     isFeature: boolean;
-    status: DiscountStatus;        // trạng thái hiện tại (từ scheduler hoặc realtime)
-
-    // Các trường bổ sung tùy dự án
-    applicableProducts: { _id: string, name: string }[];  // danh sách product ID áp dụng (nếu không phải all)
-    applicableCategories: CategoryForSelect[];
-    excludedProducts: string[];
-
+    status: DiscountStatus;
     priority: DiscountPriority;
-    userCondition: UserCondition;        // điều kiện người dùng (mới, VIP, tất cả)
-    stackable: boolean;            // có thể dùng chung với khuyến mãi khác không
-
+    userCondition: UserCondition;
+    stackable: boolean;
     createdAt: string;
     updatedAt: string;
 }
@@ -115,7 +101,7 @@ export type DiscountAvailable = {
 }
 
 // type cho type và status
-export type DiscountType = "percentage" | "fixed" | "buy_x_get_y" | "shipping"
+export type DiscountType = "percentage" | "fixed"
 
 export type DiscountStatus = "active" | "scheduled" | "expired" | "exhausted" | "inactive"
 
@@ -123,4 +109,4 @@ export type UserCondition = "all" | "new" | "vip"
 
 export type DiscountPriority = "low" | "medium" | "high"
 
-export type DiscountApplyTo = "order" | "product"
+export type DiscountApplyTo = "order"

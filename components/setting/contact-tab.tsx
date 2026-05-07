@@ -1,4 +1,4 @@
-import React, { use, useEffect } from "react";
+import React, { useEffect } from "react";
 import { TabsContent } from "@/components/ui/tabs";
 import { CardContent } from "@/components/ui/card";
 import { FormField } from "@/components/layout/form-field";
@@ -8,9 +8,8 @@ import { Controller, useForm } from "react-hook-form";
 import { ContactSettings, ContactSettingsSchema } from "@/schemas/system.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { LoaderCircle, Save, X } from "lucide-react";
+import { LoaderCircle, Save } from "lucide-react";
 import { toast } from "sonner";
-import { updateSettingBySection } from "@/services/system.service";
 import { getProvinces, getWardsByProvince, Province, Ward } from "@/lib/address";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
@@ -40,6 +39,7 @@ const ContactTab = ({ data, onUpdate }: ContactTabProps) => {
         defaultValues: {
             contactEmail: "",
             contactPhone: "",
+            workingHours: "",
             contactAddress: "",
             contactMapEmbed: "",
             province: {
@@ -58,6 +58,7 @@ const ContactTab = ({ data, onUpdate }: ContactTabProps) => {
             reset({
                 contactEmail: data.contactEmail || "",
                 contactPhone: data.contactPhone || "",
+                workingHours: data.workingHours || "",
                 contactAddress: data.contactAddress || "",
                 contactMapEmbed: data.contactMapEmbed || "",
                 province: data.province || { code: "", name: "" },
@@ -87,6 +88,9 @@ const ContactTab = ({ data, onUpdate }: ContactTabProps) => {
                 </FormField>
                 <FormField label="Số điện thoại" error={errors.contactPhone?.message}>
                     <Input {...register("contactPhone")} />
+                </FormField>
+                <FormField label="Thời gian làm việc" error={errors.workingHours?.message}>
+                    <Input placeholder="VD: 08:00 - 22:00 (T2 - CN)" {...register("workingHours")} />
                 </FormField>
                 <FormField isRequired={true} label="Tỉnh / Thành phố" error={errors.province?.code?.message}>
                     <Controller
@@ -127,35 +131,29 @@ const ContactTab = ({ data, onUpdate }: ContactTabProps) => {
                         control={control}
                         name="ward"
                         render={({ field }) => (
-                            <Controller
-                            control={control}
-                            name="ward"
-                            render={({ field }) => (
-                                <Select
-                                    value={field.value?.code ? String(field.value.code) : undefined}
-                                    onValueChange={(value) => {
-                                        const w = wards.find(ward => ward.code === Number(value));
-                                        if (w) {
-                                            field.onChange({ code: String(w.code), name: w.name });
-                                        }
-                                    }}
-                                    disabled={!wards.length}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Chọn phường / xã" />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper" sideOffset={4}>
-                                        <ScrollArea className="h-48">
-                                            {wards.map((w) => (
-                                                <SelectItem key={w.code} value={String(w.code)}>
-                                                    {w.name}
-                                                </SelectItem>
-                                            ))}
-                                        </ScrollArea>
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
+                            <Select
+                                value={field.value?.code ? String(field.value.code) : undefined}
+                                onValueChange={(value) => {
+                                    const w = wards.find(ward => ward.code === Number(value));
+                                    if (w) {
+                                        field.onChange({ code: String(w.code), name: w.name });
+                                    }
+                                }}
+                                disabled={!wards.length}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Chọn phường / xã" />
+                                </SelectTrigger>
+                                <SelectContent position="popper" sideOffset={4}>
+                                    <ScrollArea className="h-48">
+                                        {wards.map((w) => (
+                                            <SelectItem key={w.code} value={String(w.code)}>
+                                                {w.name}
+                                            </SelectItem>
+                                        ))}
+                                    </ScrollArea>
+                                </SelectContent>
+                            </Select>
                         )}
                     />
                 </FormField>

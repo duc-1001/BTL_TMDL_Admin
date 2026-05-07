@@ -72,14 +72,14 @@ const QuickView = ({
             {/* HEADER */}
             <div className="relative px-6 pt-8 pb-6 text-center bg-gradient-to-br from-primary/10 to-background border-b">
               <Avatar className="h-20 w-20 mx-auto mb-3 ring-4 ring-background shadow-lg">
-                <AvatarImage src={customer.avatar} alt={customer.name} />
+                <AvatarImage src={customer.avatar} alt={customer.fullName} />
                 <AvatarFallback className="text-xl font-bold bg-primary text-primary-foreground">
-                  {customer.name?.charAt(0) || "U"}
+                  {customer.fullName?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
 
               <SheetTitle className="text-lg font-semibold">
-                {customer.name}
+                {customer.fullName}
               </SheetTitle>
 
               <div className="mt-2 flex justify-center">

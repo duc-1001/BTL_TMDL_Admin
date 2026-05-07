@@ -1,34 +1,36 @@
-'use client'
-import { HeroSection } from "@/components/home/hero-section"
-import { CategoryGrid } from "@/components/home/category-grid"
-import { ProductGrid } from "@/components/home/product-grid"
-import { Features } from "@/components/features"
-import UserLayout from "@/components/layout/user/user-layout"
-import MergeCartNotify from "@/components/home/merge-cart-notify"
-import { useEffect } from "react"
-import { toast } from "sonner"
+"use client"
+import DashboardStatus from "@/components/dashboard/dashboard-status"
+import DashboardRecentOrders from "@/components/dashboard/dashboard-recent-orders"
+import DashboardTopProducts from "@/components/dashboard/dashboard-top-products"
+import DashboardAlerts from "@/components/dashboard/dashboard-alert"
+import AdminLayout from "@/components/layout/admin/admin-layout"
 
-export default function Home() {
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const loginSuccess = params.get("login")
 
-    if (loginSuccess === "success") {
-      toast.success("Đăng nhập thành công! Chào mừng bạn đã quay lại.")
-      params.delete("login")
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      window.history.replaceState({}, '', newUrl);
-    }
-  }, [])
+export default function AdminDashboard() {
   return (
-    <UserLayout>
-      <main className="flex-1">
-        <HeroSection />
-        <CategoryGrid />
-        <ProductGrid />
-        <Features />
-        <MergeCartNotify />
-      </main>
-    </UserLayout>
+    <AdminLayout>
+      <div className="space-y-6 p-6">
+
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">Tổng quan</h1>
+          <p className="text-muted-foreground">Tổng quan nhanh về cửa hàng bán đồ ăn vặt</p>
+        </div>
+
+        {/* KPI Stats */}
+        <DashboardStatus />
+
+        {/* Main grid */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Recent Orders */}
+          <DashboardRecentOrders />
+          {/* Top Products */}
+          <DashboardTopProducts />
+        </div>
+
+        {/* Alerts */}
+        <DashboardAlerts />
+      </div>
+    </AdminLayout>
   )
 }

@@ -49,39 +49,15 @@ export const HeroBannerSchema = z.object({
             },
             { message: "Dung lượng ảnh tối đa 10MB" }
         ),
-
-    // ===== DISPLAY LOGIC =====
-    isActive: z.boolean().optional(),
-
-    order: z
-        .number()
-        .int("Thứ tự phải là số nguyên")
-        .min(1, "Thứ tự hiển thị phải ≥ 1")
-        .optional(),
-
-    // ===== SCHEDULE =====
-    startAt: z.date().optional(),
-    endAt: z.date().optional(),
 })
     .superRefine((data, ctx) => {
-        // ✅ Check thời gian
-        if (data.startAt && data.endAt && data.endAt <= data.startAt) {
-            ctx.addIssue({
-                path: ["endAt"],
-                message: "Ngày kết thúc phải sau ngày bắt đầu",
-                code: z.ZodIssueCode.custom,
-            })
-        }
-
-        // ✅ Chỉ khi có buttonText mới bắt buộc buttonLink
         if (data.buttonText && !data.buttonLink) {
             ctx.addIssue({
                 path: ["buttonLink"],
                 message: "Vui lòng nhập link khi có văn bản nút",
                 code: z.ZodIssueCode.custom,
             })
-        }
-        else if (data.buttonText && data.buttonLink) {
+        } else if (data.buttonText && data.buttonLink) {
             if (!data.buttonLink?.startsWith("/")) {
                 ctx.addIssue({
                     path: ["buttonLink"],

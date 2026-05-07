@@ -4,14 +4,11 @@ export interface CreateNewBanner {
     buttonText?: string;
     buttonLink?: string;
     backgroundImage?: File | string;
-    isActive?: boolean;
-    order?: number;
-    startAt?: string;
-    endAt?: string;
 }
 
 export interface HeroBanner extends CreateNewBanner {
     _id: string;
+    backgroundImagePublicId?: string;
     createdAt: string;
     updatedAt: string;
 }

@@ -8,7 +8,7 @@ const refundItemSchema = z.object({
 const MAX_IMAGES = 5
 
 const baseSchema = z.object({
-    paymentMethod: z.enum(["cod", "banking"]),
+    paymentMethod: z.enum(["cod", "banking", "vnpay", "momo"]),
     type: z.enum(["full", "partial"]),
     reasonCode: z.string().min(1, "Vui lòng chọn lý do"),
     reason: z.string().optional(),
@@ -22,6 +22,7 @@ const baseSchema = z.object({
 })
 
 export const refundSchema = baseSchema
+    // Nếu reasonCode = OTHER → bắt nhập lý do cụ thể
     .refine(
         (data) => data.reasonCode !== "OTHER" || (data.reason && data.reason.trim().length > 0),
         {
@@ -29,6 +30,7 @@ export const refundSchema = baseSchema
             path: ["reason"],
         }
     )
+    // Partial refund → phải chọn ít nhất 1 sản phẩm
     .refine(
         (data) => {
             if (data.type === "partial") {
@@ -42,25 +44,23 @@ export const refundSchema = baseSchema
             path: ["items"],
         }
     )
+    // Bank info chỉ bắt buộc với COD / Banking
     .refine(
-    (data) => {
-        const needBankInfo =
-            data.paymentMethod === "cod" ||
-            data.paymentMethod === "banking" ||
-            (data.paymentMethod === "momo" && data.refundDestination === "bank")
-
-        if (!needBankInfo) return true
-
-        return (
-            !!data.bankName?.trim() &&
-            !!data.accountNumber?.trim() &&
-            !!data.accountHolder?.trim()
-        )
-    },
-    {
-        message: "Vui lòng nhập đầy đủ thông tin tài khoản ngân hàng",
-        path: ["bankName"],
-    }
-)
+        (data) => {
+            if (data.paymentMethod === "cod" || data.paymentMethod === "banking") {
+                return (
+                    data.bankName?.trim().length! > 0 &&
+                    data.accountNumber?.trim().length! > 0 &&
+                    data.accountHolder?.trim().length! > 0
+                )
+            }
+            // Với VNPAY / MoMo → luôn đúng
+            return true
+        },
+        {
+            message: "Vui lòng nhập đầy đủ thông tin tài khoản ngân hàng",
+            path: ["bankName"],
+        }
+    )
 
 export type RefundFormValues = z.infer<typeof refundSchema>

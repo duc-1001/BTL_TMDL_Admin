@@ -1,37 +1,32 @@
-import { Customer } from "@/types/customer";
+import { sendEmailToCustomer } from "@/services/customer.service";
+import { Customer, CustomerDetail } from "@/types/customer";
+import { useMutation } from "@tanstack/react-query";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 interface SendEmailToCustomerProps {
   open: boolean;
   onClose: () => void;
-  customer: Customer | null;
+  customer: Customer|CustomerDetail | null;
 }
 
 const SendEmailToCustomer = ({ open, onClose, customer }: SendEmailToCustomerProps) => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
 
-  const handleSend = async () => {
-    try {
-      await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: customer?.email,
-          subject,
-          content,
-        }),
-      });
-
-      alert("Gửi email thành công");
+  const handleSend = useMutation({
+    mutationFn: async () => {
+      if (!customer) return;
+      await sendEmailToCustomer([customer.email], subject, content);
+    },
+    onSuccess: () => {
+      toast.success("Email đã được gửi thành công!");
       onClose();
-    } catch (err) {
-      console.error(err);
-      alert("Gửi thất bại");
-    }
-  };
+    },
+    onError: () => {
+      toast.error("Có lỗi xảy ra khi gửi email. Vui lòng thử lại.");
+    },
+  });
 
   if (!open) return null;
 
@@ -88,10 +83,11 @@ const SendEmailToCustomer = ({ open, onClose, customer }: SendEmailToCustomerPro
           </button>
 
           <button
-            onClick={handleSend}
+            disabled={handleSend.isPending}
+            onClick={() => handleSend.mutate()}
             className="px-4 py-2 rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition shadow"
           >
-            Gửi email
+            {handleSend.isPending ? "Đang gửi..." : "Gửi email"}
           </button>
         </div>
       </div>

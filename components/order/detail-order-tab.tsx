@@ -58,7 +58,7 @@ const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) =>
         enabled: !!data._id && isAuthenticated
     })
 
-    const handleAddReviewSuccess = (newReview: Review|OrderReview) => {
+    const handleAddReviewSuccess = (newReview: Review | OrderReview) => {
         queryClient.setQueryData(["order-reviews", data._id], (oldData: any) => {
             if (!oldData) return [newReview]
             return [...oldData, newReview]
@@ -215,28 +215,50 @@ const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) =>
                     </Card>
 
                     {/* Payment Info */}
-                    <Card className="border shadow-sm">
-                        <CardHeader className="flex items-center justify-between pb-3">
-                            <CardTitle className="text-base font-semibold">Phương thức thanh toán</CardTitle>
-                            <span className={`px-3 py-1 text-xs font-medium rounded-full ${data?.payment?.status === "paid" ? "bg-green-100 text-green-700" : data?.payment?.status === "expired" ? "bg-gray-200 text-gray-600" : "bg-red-100 text-red-600"}`}>
-                                {data?.payment?.status === "paid" ? "Đã thanh toán" : data?.payment?.status === "expired" ? "Hết hạn" : "Chưa thanh toán"}
+                    <Card className="border border-gray-200 shadow-md rounded-2xl overflow-hidden">
+                        <CardHeader className="flex items-center justify-between bg-gray-50 px-6 py-4">
+                            <CardTitle className="text-base font-semibold text-gray-800">Phương thức thanh toán</CardTitle>
+                            <span
+                                className={`px-3 py-1 text-xs font-semibold rounded-full ${data?.payment?.status === "paid"
+                                    ? "bg-green-100 text-green-800"
+                                    : data?.payment?.status === "expired"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : "bg-red-100 text-red-700"
+                                    }`}
+                            >
+                                {data?.payment?.status === "paid"
+                                    ? "Đã thanh toán"
+                                    : data?.payment?.status === "expired"
+                                        ? "Hết hạn"
+                                        : "Chưa thanh toán"}
                             </span>
                         </CardHeader>
 
-                        <CardContent className="space-y-6">
-
+                        <CardContent className="px-6 py-4 space-y-4">
                             {/* Method row */}
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-gray-500">Hình thức</p>
-                                    <p className="text-base font-medium text-gray-800">{PAYMENT_NAME[data?.payment?.method!]}</p>
+                                    <p className="text-base font-medium text-gray-900">{PAYMENT_NAME[data?.payment?.method!]}</p>
                                 </div>
-
                                 {data?.payment?.status === "paid" && (
                                     <CheckCircle className="w-6 h-6 text-green-600" />
                                 )}
                             </div>
 
+                            {/* Payment URL */}
+                            {data?.payment?.paymentUrl && data.payment.canPay && (
+                                <div className="flex items-center justify-between">
+                                    <a
+                                        href={data.payment.paymentUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
+                                    >
+                                        Xem chi tiết thanh toán
+                                    </a>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
@@ -302,63 +324,59 @@ const DetailOrderTab = ({ data, refetch, setActiveTab }: DetailOrderTabProps) =>
                         </CardContent>
                     </Card>
 
-                    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-md">
-                        <div className="space-y-4">
+                    {(actions.canPay || actions.canReorder || actions.canTrack || actions.canRefund || actions.canCancel) && (
+                        <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-md">
+                            <div className="space-y-4">
 
-                            {/* ===== Primary Action ===== */}
-                            {actions.canPay && (
-                                <Button className="h-12 w-full bg-black hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-base font-medium shadow-sm">
-                                    <CreditCard size={18} />
-                                    Thanh toán ngay
-                                </Button>
-                            )}
-
-                            {actions.canReorder && (
-                                <BtnReorder
-                                    orderCode={data?.orderCode!}
-                                />
-                            )}
-
-                            {/* ===== Divider ===== */}
-                            <div className="border-t pt-4 space-y-3">
-
-                                {actions.canTrack && (
-                                    <Button
-                                        variant="outline"
-                                        className="w-full border-gray-200 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
-                                    >
-                                        <Truck size={18} />
-                                        Theo dõi đơn hàng
+                                {/* ===== Primary Action ===== */}
+                                {actions.canPay && (
+                                    <Button className="h-12 w-full bg-black hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-base font-medium shadow-sm">
+                                        <CreditCard size={18} />
+                                        Thanh toán ngay
                                     </Button>
                                 )}
 
-                                {actions.canRefund && (
-                                    <Button
-                                        onClick={() => {
-                                            setActiveTab("refund")
-                                        }}
-                                        variant="outline"
-                                        className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 flex items-center justify-center gap-2 font-medium"
-                                    >
-                                        <BadgeDollarSign className="h-4 w-4" />
-                                        {
-                                            data?.refundStatus === "none" ? "Yêu cầu hoàn tiền" : "Xem yêu cầu hoàn tiền"
-                                        }
-                                    </Button>
+                                {actions.canReorder && (
+                                    <BtnReorder orderCode={data?.orderCode!} />
                                 )}
 
-                                {actions.canCancel && (
-                                    <BtnCancelOrder
-                                        cancelOrderMutation={cancelOrderMutation}
-                                        openDialogCancel={openDialogCancel}
-                                        setOpenDialogCancel={setOpenDialogCancel}
-                                        orderCode={data?.orderCode!}
-                                    />
-                                )}
+                                {/* ===== Divider ===== */}
+                                <div className="border-t pt-4 space-y-3">
 
+                                    {actions.canTrack && (
+                                        <Button
+                                            variant="outline"
+                                            className="w-full border-gray-200 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center gap-2"
+                                        >
+                                            <Truck size={18} />
+                                            Theo dõi đơn hàng
+                                        </Button>
+                                    )}
+
+                                    {actions.canRefund && (
+                                        <Button
+                                            onClick={() => setActiveTab("refund")}
+                                            variant="outline"
+                                            className="w-full border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-300 flex items-center justify-center gap-2 font-medium"
+                                        >
+                                            <BadgeDollarSign className="h-4 w-4" />
+                                            {data?.refundStatus === "none" ? "Yêu cầu hoàn tiền" : "Xem yêu cầu hoàn tiền"}
+                                        </Button>
+                                    )}
+
+                                    {actions.canCancel && (
+                                        <BtnCancelOrder
+                                            cancelOrderMutation={cancelOrderMutation}
+                                            openDialogCancel={openDialogCancel}
+                                            setOpenDialogCancel={setOpenDialogCancel}
+                                            orderCode={data?.orderCode!}
+                                        />
+                                    )}
+
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
         </div>

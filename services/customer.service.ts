@@ -3,7 +3,7 @@ import { buildFormData } from "@/lib/formData";
 import { CategoryForm } from "@/schemas/category.schema";
 import { Category, CategoryForSelect, CategoryTree, ProductCategory } from "@/types/category";
 import { ApiResponse, PaginatedData } from "@/types/commons";
-import { Customer, CustomerQuickView, CustomerSummary } from "@/types/customer";
+import { Customer, CustomerDetail, CustomerOrder, CustomerQuickView, CustomerSummary } from "@/types/customer";
 
 export const getAllCustomersAdmin = async (q?: string, page: number = 1, limit: number = 20, statusFilter?: string, sortBy: string = 'createdAt') => {
     const params = {
@@ -39,4 +39,28 @@ export const blockCustomer = async (customerId: string, reasonCode: string, reas
 export const unblockCustomer = async (customerId: string) => {
     const response = await ApiClient.patch<ApiResponse>(`/customers/${customerId}/unblock`);
     return response.data;
+}
+
+export const sendEmailToCustomer = async (recipients: string[], subject: string, content: string) => {
+    const payload = {
+        subject: subject,
+        recipients: recipients,
+        content: content
+    }
+    const response = await ApiClient.post<ApiResponse>(`/customers/send-email`, payload);
+    return response.data;
+}
+
+export const getCustomerDetail = async (customerId: string) => {
+    const response = await ApiClient.get<ApiResponse<CustomerDetail>>(`/customers/${customerId}`);
+    return response.data;
+}
+
+export const getCustomerOrders = async (customerId: string, page: number = 1, limit: number = 10) => {
+    const params = {
+        page: page.toString(),
+        limit: limit.toString()
+    };
+    const response = await ApiClient.get<PaginatedData<CustomerOrder>>(`/customers/${customerId}/orders`, params);
+    return response;
 }

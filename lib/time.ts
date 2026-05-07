@@ -81,3 +81,17 @@ export function formatSmartDate(date?: string | Date) {
 
   return d.format("DD/MM/YYYY HH:mm")
 }
+
+/**
+ * Tính số ngày còn lại đến một ngày nào đó
+ * Trả về số ngày, hoặc null nếu ngày không hợp lệ
+ */
+
+export function getDaysUntil(date?: string | Date) {
+  if (!date) return null
+
+  const now = dayjs().tz(TIMEZONE).startOf("day")
+  const target = dayjs.utc(date).tz(TIMEZONE).startOf("day")
+
+  return target.diff(now, "day")
+}

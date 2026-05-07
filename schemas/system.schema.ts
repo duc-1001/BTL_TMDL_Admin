@@ -9,6 +9,7 @@ export const SystemSettingsSchema = z.object({
 export const ContactSettingsSchema = z.object({
     contactEmail: z.string().email("Địa chỉ email không hợp lệ").optional(),
     contactPhone: z.string().optional(),
+    workingHours: z.string().optional(),
     contactAddress: z.string().optional(),
     contactMapEmbed: z.string().optional(),
     province: z.object({

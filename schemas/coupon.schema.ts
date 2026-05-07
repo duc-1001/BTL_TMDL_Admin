@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+
 export const couponSchema = z.object({
   code: z
     .string()
@@ -8,12 +9,11 @@ export const couponSchema = z.object({
     .regex(/^[A-Z0-9]+$/, "Chỉ chấp nhận chữ cái in hoa và số"),
   name: z.string().min(5, "Tên khuyến mãi phải có ít nhất 5 ký tự"),
   description: z.string().min(10, "Mô tả phải có ít nhất 10 ký tự"),
-  type: z.enum(["percentage", "fixed", "shipping", "buy_x_get_y"]),
-  applyTo: z.enum(["order", "product"]),
+  type: z.enum(["percentage", "fixed"]),
+  applyTo: z.literal("order"),
   discountValue: z
     .number()
-    .min(0, "Giá trị giảm phải lớn hơn hoặc bằng 0")
-    .optional(),
+    .min(1, "Giá trị giảm phải lớn hơn 0"),
   maxDiscountValue: z.number().min(0).optional(),
   minOrderValue: z.number().min(0, "Giá trị đơn tối thiểu phải >= 0").optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
@@ -24,21 +24,10 @@ export const couponSchema = z.object({
   maxUsagePerUser: z.number().min(0).optional(),
   stackable: z.boolean().optional(),
   isActive: z.boolean().optional(),
-  applyToAllCategories: z.boolean().optional(),
-  applicableCategories: z.array(z.string()).optional(),
-  applicableProducts: z.array(z.string()).optional(),
+  applyToAllCategories: z.literal(true),
+  applicableCategories: z.array(z.string()).default([]),
+  applicableProducts: z.array(z.string()).default([]),
 }).refine(
-  (data) => {
-    if (data.type === "percentage" || data.type === "fixed") {
-      return data.discountValue !== undefined && data.discountValue > 0;
-    }
-    return true;
-  },
-  {
-    message: "Giá trị giảm là bắt buộc và phải > 0 cho loại percentage/fixed",
-    path: ["discountValue"],
-  }
-).refine(
   (data) => new Date(data.startDate) < new Date(data.endDate),
   {
     message: "Ngày kết thúc phải sau ngày bắt đầu",

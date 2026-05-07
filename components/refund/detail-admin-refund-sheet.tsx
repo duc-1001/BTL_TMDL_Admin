@@ -22,7 +22,7 @@ import {
 import { formatDateTime, formatPrice } from "@/lib/utils"
 import { useQuery } from "@tanstack/react-query"
 import { adminGetRefundDetails } from "@/services/refund.service"
-import { statusColors, statusLabels } from "@/app/(admin)/admin/refunds/page"
+import { statusColors, statusLabels } from "@/app/(admin)/refunds/page"
 
 interface DetailAdminRefundSheetProps {
   sheetOpen: boolean

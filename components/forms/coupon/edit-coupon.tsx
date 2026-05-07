@@ -191,58 +191,30 @@ const EditCoupon = (props: EditCouponProps) => {
                 </div>
 
                 {/* Loại KM & Áp dụng cho */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                        <Label htmlFor="type" className="font-medium">
-                            Loại khuyến mãi <span className="text-red-500">*</span>
-                        </Label>
-                        <Controller
-                            control={control}
-                            name="type"
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                >
-                                    <SelectTrigger className="h-10 w-full">
-                                        <SelectValue placeholder="Chọn loại khuyến mãi" />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper" sideOffset={4}>
-                                        <SelectItem value="percentage">Giảm theo phần trăm</SelectItem>
-                                        <SelectItem value="fixed">Giảm theo số tiền cố định</SelectItem>
-                                        <SelectItem value="shipping">Miễn phí vận chuyển</SelectItem>
-                                        <SelectItem value="buy_x_get_y">Mua X tặng Y</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="applyTo" className="font-medium">
-                            Áp dụng cho <span className="text-red-500">*</span>
-                        </Label>
-                        <Controller
-                            control={control}
-                            name="applyTo"
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value}
-                                >
-                                    <SelectTrigger className="h-10 w-full">
-                                        <SelectValue placeholder="Chọn loại áp dụng" />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper" sideOffset={4}>
-                                        <SelectItem value="order">Đơn hàng</SelectItem>
-                                        <SelectItem value="product">Sản phẩm</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-
-                    </div>
+                {/* Loại mã giảm giá: chỉ còn 2 loại cơ bản */}
+                <div className="space-y-2">
+                    <Label htmlFor="type" className="font-medium">
+                        Loại mã giảm giá <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                        control={control}
+                        name="type"
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger className="h-10 w-full">
+                                    <SelectValue placeholder="Chọn loại mã giảm giá" />
+                                </SelectTrigger>
+                                <SelectContent position="popper" sideOffset={4}>
+                                    <SelectItem value="percentage">Giảm theo phần trăm</SelectItem>
+                                    <SelectItem value="fixed">Giảm theo số tiền cố định</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
                 </div>
+
+                {/* Áp dụng cho: chỉ còn đơn hàng, không cho chọn */}
+                <input type="hidden" value="order" {...register("applyTo")} />
 
                 {/* Giá trị giảm */}
                 {selectedType !== "shipping" && selectedType !== "buy_x_get_y" && (
@@ -416,125 +388,11 @@ const EditCoupon = (props: EditCouponProps) => {
                     {errors.maxUsagePerUser && <p className="text-xs font-medium text-red-600 mt-1">{errors.maxUsagePerUser.message}</p>}
                 </div>
 
-                {/* Danh mục & Sản phẩm - vẫn dùng state riêng hoặc tích hợp nếu cần */}
-                {/* Để đơn giản, giữ nguyên logic cũ với setValue */}
-                <div className={`grid grid-cols-1 ${watch("applyTo") === "product" && "lg:grid-cols-2"} gap-6`}>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between py-2">
-                            <Label className="font-medium">Danh mục áp dụng</Label>
-                            <div className="flex items-center gap-2">
-                                <Controller
-                                    control={control}
-                                    name="applyToAllCategories"
-
-                                    render={({ field }) => (
-                                        <Checkbox
-                                            id="select-all-categories"
-                                            checked={field.value}
-                                            onCheckedChange={(checked) => {
-                                                field.onChange(checked);
-                                                setValue("applicableCategories", []);
-                                            }}
-                                        />
-                                    )}
-                                />
-                                <Label htmlFor="select-all-categories" className="text-sm font-medium cursor-pointer">
-                                    Chọn tất cả
-                                </Label>
-                            </div>
-                        </div>
-                        <div className="border rounded-lg p-4 bg-muted/40 max-h-52 overflow-y-auto shadow-inner">
-                            <div className="space-y-3">
-                                {categories.map((cat) => (
-                                    <div key={cat._id} className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            id={`cat-${cat._id}`}
-                                            checked={(watch("applicableCategories") || []).includes(cat._id) || watch("applyToAllCategories")}
-                                            onChange={(e) => {
-                                                setValue("applyToAllCategories", false);
-                                                const current = watch("applicableCategories") || [];
-                                                const newCats = e.target.checked
-                                                    ? [...current, cat._id]
-                                                    : current.filter((c) => c !== cat._id);
-                                                setValue("applicableCategories", newCats, { shouldValidate: true });
-                                            }}
-                                            className="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
-                                        />
-                                        <Label htmlFor={`cat-${cat._id}`} className="ml-3 text-sm cursor-pointer">
-                                            {cat.name}
-                                        </Label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                    {
-                        watch("applyTo") === "product" && (<div>
-                            <Popover open={openProductsPopover} onOpenChange={setOpenProductsPopover}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full justify-between ">
-                                        <span className="flex items-center gap-2 text-muted-foreground group-hover:text-white">
-                                            {/* < className="h-4" /> */}
-                                            {applicableProducts.length > 0 ? `Đã chọn ${applicableProducts.length} sản phẩm` : "Chọn sản phẩm áp dụng"}
-                                        </span>
-                                        <ChevronsUpDown className="h-4" />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent sideOffset={4} className="p-0">
-                                    <Command>
-                                        <CommandInput placeholder="Tìm sản phẩm..." value={searchProductQuery} onValueChange={setSearchProductQuery} />
-                                        <CommandList className="w-full">
-                                            <CommandEmpty>Không có sản phẩm</CommandEmpty>
-                                            <CommandGroup heading="Danh sách sản phẩm">
-                                                {productOptions.map((product) => (
-                                                    <CommandItem key={product._id} onSelect={() => {
-                                                        const exists = applicableProducts.some((p) => p === product._id);
-                                                        if (exists) {
-                                                            setValue("applicableProducts", applicableProducts.filter((p) => p !== product._id));
-                                                            setSelectedProducts(selectedProducts.filter((p) => p._id !== product._id));
-                                                        }
-                                                        else {
-                                                            setValue("applicableProducts", [...applicableProducts, product._id]);
-                                                            const selectedProduct = productOptions.find((p) => p._id === product._id);
-                                                            if (selectedProduct) {
-                                                                setSelectedProducts([...selectedProducts, selectedProduct]);
-                                                            }
-                                                        }
-                                                    }}>
-                                                        <div className="flex items-center gap-2">
-                                                            <Checkbox checked={applicableProducts.some((p) => p === product._id)} />
-                                                            <span className="line-clamp-1">{product.name}</span>
-                                                        </div>
-                                                    </CommandItem>
-                                                ))}
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                            <div className="mt-3 space-y-2 max-h-52 overflow-y-auto">
-                                {selectedProducts.map((product) => (
-                                    <div key={product._id} className="flex items-center justify-between bg-orange-300/40 rounded-md px-3  py-2">
-                                        <span className="text-sm">{product.name}</span>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="rounded-full h-5 w-5 flex items-center justify-center"
-                                            onClick={() => {
-                                                setValue("applicableProducts", applicableProducts.filter((p) => p !== product._id));
-                                                setSelectedProducts(selectedProducts.filter((p) => p._id !== product._id));
-                                            }}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        )
-                    }
-                </div>
+                {/* Danh mục: auto áp dụng tất cả, không cho chọn */}
+                <input type="hidden" value={true} {...register("applyToAllCategories")} />
+                <input type="hidden" value={[]} {...register("applicableCategories")} />
+                {/* Không cho chọn sản phẩm, coupon áp dụng cho toàn bộ đơn hàng */}
+                <input type="hidden" value={[]} {...register("applicableProducts")} />
 
                 {/* Kích hoạt */}
                 <div className="flex items-center space-x-3 pt-4 border-t">

@@ -19,13 +19,14 @@ export interface OrderResponse {
   paymentMethod: PaymentMethod
   qrPayload: string
   qrBase64: string
+  paymentUrl?: string
 }
 
-export type PaymentMethod = "cod" | "banking" | "momo"
+export type PaymentMethod = "cod" | "banking" | "momo" | "vnpay"
 
 export type PaymentStatus = "unpaid" | "paid" | "refunded" | "failed" | "expired"| "partially_refunded"
 
-export type OrderStatus = "pending" | "confirmed" | "shipping" | "delivered" | "completed" | "cancelled" | "refunded" | "failed"
+export type OrderStatus = "pending" | "confirmed" | "shipping" | "delivered" | "completed" | "cancelled" | "failed"
 
 export type OrderStatusForWorkflow = "pending" | "confirmed" | "shipping" |  "failed"
 
@@ -60,6 +61,8 @@ export interface PaymentDisplayInfo {
   expiredAt?: string | null
   method: PaymentMethod
   status: PaymentStatus
+  paymentUrl?: string | null
+  canPay: boolean
 }
 
 export interface SuccessOrderResponse {
@@ -70,9 +73,19 @@ export interface SuccessOrderResponse {
   discountAmount: number
   items: OrderItemSnapshot[]
   shippingAddress: ShippingAddress
-  payment: PaymentDisplayInfo
+  payment: {
+    method: "cod" | "banking" | "momo" | "vnpay"
+    status: "paid" | "unpaid"
+    // QR
+    qrBase64?: string
+    qrPayload?: string
+    // VNPAY
+    paymentUrl?: string
+  }
   createdAt: string
   viewToken: string
+  // 🔥 optional (rất nên có)
+  expireAt?: string
 }
 
 /* ================= ADMIN SIDE ================= */
@@ -122,6 +135,7 @@ export interface AdminOrderListItem {
   orderCode: string
 
   customer: {
+    _id: string
     name: string
     phone: string
     email: string
@@ -197,6 +211,7 @@ export interface AdminOrderDetail {
   _id: string
   orderCode: string
   customer: {
+    _id: string
     name: string
     phone: string
     email: string
@@ -208,6 +223,7 @@ export interface AdminOrderDetail {
   shippingFee: number
   discountAmount: number
   totalAmount: number
+  shippingDiscount: number
   items: OrderItemSnapshot[]
   shippingAddress: ShippingAddress
   payment: PaymentDisplayInfo

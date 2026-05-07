@@ -11,7 +11,7 @@ import {
 } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Ban } from 'lucide-react'
-import { Customer } from '@/types/customer'
+import { Customer, CustomerDetail } from '@/types/customer'
 import {
     Select,
     SelectContent,
@@ -23,7 +23,7 @@ import {
 interface BlockCustomerProps {
     blockDialogOpen: boolean
     setBlockDialogOpen: (open: boolean) => void
-    selectedCustomer: Customer | null
+    selectedCustomer: Customer|CustomerDetail | null
     handleBlockMutation: any
 }
 
@@ -69,7 +69,7 @@ const BlockCustomer = ({
 
                     <DialogDescription>
                         Bạn có chắc chắn muốn chặn{" "}
-                        <strong>{selectedCustomer?.name}</strong>?
+                        <strong>{selectedCustomer?.fullName}</strong>?
                         Khách hàng sẽ không thể đăng nhập và đặt hàng.
                     </DialogDescription>
                 </DialogHeader>

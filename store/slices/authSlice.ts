@@ -45,9 +45,16 @@ const authSlice = createSlice({
                 state.isLoading = false;
             })
             .addCase(fetchMe.rejected, (state) => {
+                state.user = null;
+                state.isAuthenticated = false;
                 state.isLoading = false;
             });
         builder.addCase(fetchLogout.fulfilled, (state) => {
+            state.user = null
+            state.isAuthenticated = false
+            state.isLoading = false
+        })
+        builder.addCase(fetchLogout.rejected, (state) => {
             state.user = null
             state.isAuthenticated = false
             state.isLoading = false

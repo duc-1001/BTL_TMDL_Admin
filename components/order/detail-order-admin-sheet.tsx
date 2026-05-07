@@ -33,7 +33,7 @@ import { OrderStatus } from '@/types/order'
 import { OrderItemRow } from './order-item-row'
 import { queryClient } from '../QueryClientProviders'
 import { toast } from 'sonner'
-import { BadgeStatusPayment } from '@/app/(admin)/admin/orders/page'
+import { BadgeStatusPayment } from '@/app/(admin)/orders/page'
 
 interface DetailOrderAdminSheetProps {
     sheetOpen: boolean

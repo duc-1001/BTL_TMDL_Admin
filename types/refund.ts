@@ -40,7 +40,7 @@ export interface BankInfoPayload {
 
 export interface CreateRefundPayload {
     orderCode: string;
-    paymentMethod: "cod" | "banking";
+    paymentMethod: "cod" | "banking" | "vnpay" | "momo";
     reasonCode: ReasonCode;
     reason?: string;
 

@@ -2,12 +2,12 @@ import React from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Button } from '../ui/button'
 import { Unlock } from 'lucide-react'
-import { Customer } from '@/types/customer'
+import { Customer, CustomerDetail } from '@/types/customer'
 
 interface UnblockCustomerProps {
     unblockDialogOpen: boolean
     setUnblockDialogOpen: (open: boolean) => void
-    selectedCustomer: Customer | null
+    selectedCustomer: Customer|CustomerDetail | null
     handleUnblockMutation: any
 }
 
@@ -21,7 +21,7 @@ const UnblockCustomer = ({ unblockDialogOpen, setUnblockDialogOpen, selectedCust
                         Mở khóa tài khoản
                     </DialogTitle>
                     <DialogDescription>
-                        Bạn có chắc chắn muốn mở khóa <strong>{selectedCustomer?.name}</strong>?
+                        Bạn có chắc chắn muốn mở khóa <strong>{selectedCustomer?.fullName}</strong>?
                         Khách hàng sẽ có thể đăng nhập và đặt hàng bình thường.
                     </DialogDescription>
                 </DialogHeader>

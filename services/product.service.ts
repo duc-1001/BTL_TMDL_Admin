@@ -57,8 +57,8 @@ export const getProductBatchesAdmin = async (productId: string, page: number, li
     return response;
 }
 
-export const updateBatchQuantity = async (productId: string, data: any) => {
-    const response = await ApiClient.put<ApiResponse>(`/products/admin/${productId}/batches/${data.batchId}`, { quantity: data.quantity });
+export const updateBatchQuantity = async (productId: string, batchId: string, data: any) => {
+    const response = await ApiClient.put<ApiResponse>(`/products/admin/${productId}/batches/${batchId}`, { quantity: data.quantity });
     return response;
 }
 
@@ -97,65 +97,5 @@ export const getProductPerformance = async (productId: string, days: number) => 
     const params = { days }
     const response = await ApiClient.get<ApiResponse<{ searchRate: number, addToCartRate: number, wishlistRate: number }>>(`/products/admin/${productId}/analytics/performance`, params);
     return response.data;
-}
-
-//user
-export const getProducts = async (q?: string, category?: string[], page: number = 1, limit: number = 20, sort: string = "createdAt_desc",minPrice?:number,maxPrice?:number) => {
-    const params: any = { q, page, limit, sort }
-
-    if (category?.length) {
-        params.category = category.join(",")
-    }
-
-    if (minPrice !== undefined) {
-        params.min_price = minPrice;
-    }
-
-    if (maxPrice !== undefined) {
-        params.max_price = maxPrice;
-    }
-    
-    const response = await ApiClient.get<PaginatedData<ProductCard>>('/products', params);
-    return response;
-}
-
-export const getHomeProducts = async (limit: number) => {
-    const response = await ApiClient.get<ApiResponse<ProductCard[]>>('/products/home', { limit });
-    return response.data;
-}
-
-export const getProductBySlug = async (slug: string) => {
-    const response = await ApiClient.get<ApiResponse<Product>>(`/products/${slug}`);
-    return response.data;
-}
-
-export const getSimilarProducts = async (id: string, limit: number = 4) => {
-    const params = { limit }
-    const response = await ApiClient.get<ApiResponse<BasicProductCard[]>>(`/products/${id}/similar`, params);
-    return response.data;
-}
-
-export const getCanReviewProduct = async (productId: string) => {
-    const response = await ApiClient.get<ApiResponse<{ 
-        canReview: boolean
-        orders:{
-            orderId: string
-            orderCode: string
-            viewToken: string
-            createdAt: string
-        }[],
-     }>>(`/products/${productId}/can-review`);
-    return response.data;
-}
-
-export const getProductReviews = async (productId: string, page: number, limit: number) => {
-    const params = { page, limit }
-    const response = await ApiClient.get<PaginatedData<Review>>(`/products/${productId}/reviews`, params);
-    return response;
-}
-
-export const increaseProductView = async (productId: string) => {
-    const response = await ApiClient.post(`/products/${productId}/view`);
-    return response;
 }
 

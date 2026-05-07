@@ -100,7 +100,6 @@ export const getStatusColor = (status: OrderStatus): string => {
     delivered: "bg-green-100 text-green-800",
     completed: "bg-green-100 text-green-800",
     cancelled: "bg-red-100 text-red-800",
-    refunded: "bg-orange-100 text-orange-800",
     failed: "bg-red-100 text-red-800",
   }
   return colors[status] || "bg-gray-100 text-gray-800"
@@ -115,6 +114,15 @@ export const ORDER_STEPS = [
     { value: 'completed', label: 'Hoàn tất' }
 ] as const
 
+export const ORDER_STEPS_LABEL: Record<string, string> = {
+  pending: "Đang xử lý",
+  confirmed: "Đã xác nhận",
+  shipping: "Đang giao",
+  delivered: "Đã giao",
+  cancelled: "Đã hủy",
+  completed: "Hoàn thành",
+};
+
 export const HIDE_REVIEW_REASONS = [
     { value: "SPAM", label: "Spam / quảng cáo" },
     { value: "OFFENSIVE", label: "Ngôn từ không phù hợp" },
@@ -125,5 +133,6 @@ export const HIDE_REVIEW_REASONS = [
 export const PAYMENT_NAME: Record<string, string> = {
     cod: "Thanh toán khi nhận hàng",
     banking: "Chuyển khoản ngân hàng",
-    momo: "Momo"
+    momo: "Momo",
+    vnpay: "VnPay"
 }

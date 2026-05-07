@@ -20,7 +20,7 @@ interface UpdateBatchProps {
 }
 
 const updateBatchSchema = z.object({
-    quantity: z.number().min(1, "Số lượng phải lớn hơn hoặc bằng 1"),
+    quantity: z.number().min(0, "Số lượng phải lớn hơn hoặc bằng 0"),
 });
 
 type UpdateBatchSchema = z.infer<typeof updateBatchSchema>;
@@ -38,7 +38,7 @@ const UpdateBatch = (props: UpdateBatchProps) => {
         }
     })
     const adjustMutation = useMutation({
-        mutationFn: (payload: any) => updateBatchQuantity(batch._id, payload),
+        mutationFn: (payload: any) => updateBatchQuantity(productId, batch._id, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["product-batches", productId, currentPage, itemsPerPage] })
             toast.success("Cập nhật số lượng thành công")
@@ -51,6 +51,9 @@ const UpdateBatch = (props: UpdateBatchProps) => {
             quantity: Number(data.quantity),
         })
     }
+
+    console.log("Batch edit data:", batch)
+
     return (
         <DialogContent>
             <DialogHeader>

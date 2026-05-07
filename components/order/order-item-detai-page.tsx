@@ -9,10 +9,10 @@ import { useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
 import { toast } from 'sonner'
 import StarRating from '../prodcuct/star-rating'
-import { formatTimeAgo } from '@/lib/time'
 import { Dialog } from '@radix-ui/react-dialog'
 import { DialogTrigger } from '../ui/dialog'
 import { EditReviewModal } from '../forms/review/edit-review-modal'
+import { formatTimeAgo } from '@/lib/time'
 
 interface OrderItemDetailPageProps {
     item: OrderItemSnapshot
@@ -51,7 +51,7 @@ const OrderItemDetailPage = ({ item, canReview, orderId, review, handleAddReview
                             <div className="flex items-center gap-2 text-xs text-gray-600">
                                 <StarRating rating={review.rating} size="sm" />
                                 <span className="text-gray-400">•</span>
-                                <span>{formatDateTime(review.createdAt)}</span>
+                                <span>{formatTimeAgo(review.createdAt)}</span>
                             </div>
 
                             <Dialog open={showEditReviewDialog} onOpenChange={setShowEditReviewDialog}>

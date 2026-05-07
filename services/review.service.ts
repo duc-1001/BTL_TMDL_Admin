@@ -22,14 +22,3 @@ export const unhideReview = async (id: string) => {
     const response = await ApiClient.patch<ApiResponse<{ _id: string }>>(`/reviews/${id}/unhide`);
     return response.data;
 }
-
-//user
-export const createReview = async (payload: CreateReviewPayload) => {
-  const response = await ApiClient.post<ApiResponse<Review>>("/reviews", payload);
-  return response.data;
-}
-
-export const updateReview = async (reviewId: string, payload: EditReviewPayload) => {
-  const response = await ApiClient.put<ApiResponse<Review>>(`/reviews/${reviewId}`, payload);
-  return response.data;
-}

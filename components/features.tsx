@@ -5,7 +5,7 @@ const features = [
   {
     icon: Truck,
     title: "Giao hàng nhanh",
-    description: "Miễn phí vận chuyển cho đơn hàng trên 200k",
+    description: "Cam kết giao hàng nhanh chóng và đúng hẹn",
   },
   {
     icon: Shield,

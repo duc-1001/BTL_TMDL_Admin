@@ -14,10 +14,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, CircleQuestionMark, ShieldCheck, TableOfContents } from "lucide-react"
 
 import {
   LayoutDashboard,
+  NotebookPen,
   Package,
   ShoppingCart,
   Users,
@@ -29,6 +30,7 @@ import {
   FolderTree,
   Landmark,
   MessageSquare,
+  MessagesSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname } from "next/navigation"
@@ -36,31 +38,35 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 const navigation = [
-  { name: "Tổng quan", href: "/admin", icon: LayoutDashboard },
+  { name: "Tổng quan", href: "/", icon: LayoutDashboard },
 
-  { name: "Sản phẩm", href: "/admin/products", icon: Package },
-  { name: "Danh mục", href: "/admin/categories", icon: FolderTree },
-  { name: "Thương hiệu", href: "/admin/brands", icon: Landmark },
+  { name: "Sản phẩm", href: "/products", icon: Package },
+  { name: "Danh mục", href: "/categories", icon: FolderTree },
+  { name: "Thương hiệu", href: "/brands", icon: Landmark },
 
-  { name: "Đơn hàng", href: "/admin/orders", icon: ShoppingCart },
-  { name: "Hoàn trả", href: "/admin/refunds", icon: Tag },
-  { name: "Khách hàng", href: "/admin/customers", icon: Users },
-  { name: "Đánh giá", href: "/admin/reviews", icon: MessageSquare },
+  { name: "Đơn hàng", href: "/orders", icon: ShoppingCart },
+  { name: "Hoàn trả", href: "/refunds", icon: Tag },
+  { name: "Khách hàng", href: "/customers", icon: Users },
+  { name: "Đánh giá", href: "/reviews", icon: MessageSquare },
+  { name: "Liên hệ", href: "/contacts", icon: MessagesSquare },
   {
     name: "Marketing",
     children:
       [
-        { name: "Hero / Banner", href: "/admin/marketing/hero" },
-        { name: "Khuyến mãi", href: "/admin/marketing/discounts" },
-        { name: "Email Marketing", href: "/admin/marketing/email" },
-        { name: "Social khuyến mãi", href: "/admin/marketing/social" },
-        // { name: "Coupon", href: "/admin/marketing/coupons" },
+        { name: "Hero / Banner", href: "/marketing/hero" },
+        { name: "Khuyến mãi", href: "/marketing/discounts" },
+        // { name: "Email Marketing", href: "/marketing/email" },
+        // { name: "Social khuyến mãi", href: "/marketing/social" },
+        // { name: "Coupon", href: "/marketing/coupons" },
       ]
     , icon: Megaphone
   },
 
-  { name: "Báo cáo", href: "/admin/reports", icon: BarChart3 },
-  { name: "Cài đặt", href: "/admin/settings", icon: Settings },
+  { name: "Báo cáo", href: "/reports", icon: BarChart3 },
+  { name: "Chính sách", href: "/policies", icon: ShieldCheck },
+  { name: "Giới thiệu", href: "/about", icon: NotebookPen },
+  { name: "Câu hỏi thường gặp", href: "/faqs", icon: CircleQuestionMark },
+  { name: "Cài đặt", href: "/settings", icon: Settings },
 ]
 
 export default function AdminSidebar() {
@@ -71,7 +77,7 @@ export default function AdminSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarHeader className="text-2xl font-bold border-b">
-            <Link href="/admin" className="block px-4 py-3">
+            <Link href="" className="block px-4 py-3">
               Admin Panel
             </Link>
           </SidebarHeader>
