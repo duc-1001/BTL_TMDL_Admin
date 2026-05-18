@@ -15,8 +15,8 @@ export default function RootLayout({
   
 
   useEffect(() => {
-    const hasAccessToken = typeof document !== 'undefined' && document.cookie.includes('access_token=')
-    if (isAuthenticated || hasAccessToken) {
+      // const hasAccessToken = typeof document !== 'undefined' && document.cookie.includes('access_token=')
+    if (isAuthenticated /* || hasAccessToken */) {
       router.replace("/")
     }
   }, [isAuthenticated, router])

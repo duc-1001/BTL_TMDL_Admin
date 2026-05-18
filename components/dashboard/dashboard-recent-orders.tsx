@@ -44,7 +44,7 @@ const DashboardRecentOrders = () => {
                 </div>
 
                 <Button asChild size="sm" variant="outline">
-                    <Link href="/admin/orders">Xem tất cả</Link>
+                    <Link href="/orders">Xem tất cả</Link>
                 </Button>
             </CardHeader>
 

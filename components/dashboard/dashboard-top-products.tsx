@@ -21,7 +21,7 @@ const DashboardTopProducts = () => {
                 </div>
 
                 <Button asChild size="sm" variant="outline">
-                    <Link href="/admin/products">Xem tất cả</Link>
+                    <Link href="products">Xem tất cả</Link>
                 </Button>
             </CardHeader>
 
