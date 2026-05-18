@@ -1,7 +1,7 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Package, MapPin, CreditCard, User, Phone, Mail, Truck, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-import { toast } from "sonner" // hoặc react-hot-toast, tùy bạn
+import { toast } from "sonner"
 import { getOrderDetailsAdmin, markOrderAsPaid, revertOrderToUnpaid, updateOrderStatus } from "@/services/order.service"
 import { formatTimeAgo } from "@/lib/time"
 import { OrderStatus, TimelineItem } from "@/types/order"
@@ -47,6 +47,7 @@ interface OrderDetailPageProps {
 }
 
 export default function OrderDetailPage({ orderCode }: OrderDetailPageProps) {
+  const router = useRouter()
   const queryClient = useQueryClient()
 
   // Fetch chi tiết đơn hàng
@@ -54,12 +55,21 @@ export default function OrderDetailPage({ orderCode }: OrderDetailPageProps) {
     data: order,
     isLoading,
     isError,
-    error
   } = useQuery({
     queryKey: ["orderDetail", orderCode],
     queryFn: () => getOrderDetailsAdmin(orderCode),
     enabled: !!orderCode,
+    retry: false,
   })
+
+  useEffect(() => {
+    if (isError || (!isLoading && order === null)) {
+      toast.error("Không tìm thấy đơn hàng", {
+        description: "Đang chuyển về danh sách đơn hàng...",
+      })
+      router.replace("/orders")
+    }
+  }, [isError, isLoading, order])
 
   // Mutation thay đổi trạng thái đơn hàng
   const updateStatusMutation = useMutation({
@@ -129,8 +139,32 @@ export default function OrderDetailPage({ orderCode }: OrderDetailPageProps) {
     },
   })
 
-  if (isLoading) return <div className="p-8 text-center">Đang tải chi tiết đơn hàng...</div>
-  if (isError || !order) return <div className="p-8 text-center text-red-600">Lỗi: {(error as any)?.message || "Không tìm thấy đơn hàng"}</div>
+  if (isLoading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center gap-4">
+          <div className="w-9 h-9 rounded bg-muted animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-8 w-64 rounded bg-muted animate-pulse" />
+            <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="h-64 rounded-lg bg-muted animate-pulse" />
+            <div className="h-48 rounded-lg bg-muted animate-pulse" />
+          </div>
+          <div className="space-y-4">
+            <div className="h-40 rounded-lg bg-muted animate-pulse" />
+            <div className="h-40 rounded-lg bg-muted animate-pulse" />
+            <div className="h-40 rounded-lg bg-muted animate-pulse" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isError || !order) return null
 
   const subtotal = order.items.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
   const total = subtotal + order.shippingFee

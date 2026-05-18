@@ -4,11 +4,13 @@ import { SelectContent } from "@/components/ui/select"
 import { SelectValue } from "@/components/ui/select"
 import { SelectTrigger } from "@/components/ui/select"
 import { Select } from "@/components/ui/select"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, TrendingUp, ShoppingCart, Eye, DollarSign, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { useQuery } from "@tanstack/react-query"
 import { getAnalyticsRevenueProduct, getAnalyticsSummaryProduct, getBatchProductStatus, getProductBasicInfo, getProductOrdersViewsChart, getProductPerformance } from "@/services/product.service"
@@ -19,10 +21,12 @@ interface ProductDetailPageProps {
 }
 
 export default function ProductDetailPage({ id }: ProductDetailPageProps) {
-    const { data: productBasicInfo } = useQuery({
+    const router = useRouter()
+    const { data: productBasicInfo, isLoading, isError } = useQuery({
         queryKey: ['admin-product-basic-info', id],
         queryFn: () => getProductBasicInfo(id),
         enabled: !!id,
+        retry: false,
     })
     const { data: batchProductStatus } = useQuery({
         queryKey: ['admin-batch-product-status', id],
@@ -55,6 +59,43 @@ export default function ProductDetailPage({ id }: ProductDetailPageProps) {
         queryFn: () => getProductPerformance(id, performanceDays),
         enabled: !!id,
     })
+
+    useEffect(() => {
+        if (isError || (!isLoading && productBasicInfo === null)) {
+            toast.error("Không tìm thấy sản phẩm", {
+                description: "Đang chuyển về danh sách sản phẩm...",
+            })
+            router.replace("/products")
+        }
+    }, [isError, isLoading, productBasicInfo])
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                    <div className="space-y-2">
+                        <div className="h-8 w-56 rounded bg-muted animate-pulse" />
+                        <div className="h-4 w-40 rounded bg-muted animate-pulse" />
+                    </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className="h-28 rounded-lg bg-muted animate-pulse" />
+                    ))}
+                </div>
+                <div className="grid lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 space-y-4">
+                        <div className="h-80 rounded-lg bg-muted animate-pulse" />
+                        <div className="h-80 rounded-lg bg-muted animate-pulse" />
+                    </div>
+                    <div className="h-96 rounded-lg bg-muted animate-pulse" />
+                </div>
+            </div>
+        )
+    }
+
+    if (isError || !productBasicInfo) return null
 
     return (
         <div>

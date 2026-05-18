@@ -26,8 +26,9 @@ import {
   Clock, MessageSquare, Plus, Send, CreditCard, Gift
 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { blockCustomer, getCustomerDetail, getCustomerOrders, unblockCustomer } from "@/services/customer.service"
 import { formatTimeAgo } from "@/lib/time"
@@ -78,17 +79,27 @@ export default function CustomerDetailPage({ id }: CustomerDetailPageProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const [unblockDialogOpen, setUnblockDialogOpen] = useState(false)
 
-  const { data: customerDetail } = useQuery({
+  const { data: customerDetail, isLoading, isError } = useQuery({
     queryKey: ["customerDetail", id],
     queryFn: async () => getCustomerDetail(id),
     enabled: !!id,
+    retry: false,
   })
 
   const { data: customerOrders } = useQuery({
     queryKey: ["customerOrders", id, currentPage],
     queryFn: async () => getCustomerOrders(id, currentPage, 5),
-    enabled: !!id,
+    enabled: !!id && !!customerDetail,
   })
+
+  useEffect(() => {
+    if (isError || (!isLoading && customerDetail === null)) {
+      toast.error("Không tìm thấy khách hàng", {
+        description: "Đang chuyển về danh sách khách hàng...",
+      })
+      router.replace("/customers")
+    }
+  }, [isError, isLoading, customerDetail])
 
 
   const [editedCustomer, setEditedCustomer] = useState({ ...customerDetail })
@@ -211,6 +222,29 @@ export default function CustomerDetailPage({ id }: CustomerDetailPageProps) {
       })
     },
   })
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 max-w-6xl">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+          <div className="space-y-2">
+            <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+            <div className="h-4 w-64 rounded bg-muted animate-pulse" />
+          </div>
+        </div>
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
+            <div className="h-48 rounded-lg bg-muted animate-pulse" />
+            <div className="h-40 rounded-lg bg-muted animate-pulse" />
+          </div>
+          <div className="lg:col-span-2 h-96 rounded-lg bg-muted animate-pulse" />
+        </div>
+      </div>
+    )
+  }
+
+  if (isError || !customerDetail) return null
 
   return (
     <div>
