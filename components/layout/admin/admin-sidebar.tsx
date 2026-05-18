@@ -33,9 +33,13 @@ import {
   MessagesSquare,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/store/store"
+import { fetchLogout } from "@/store/slices/authSlice"
+import { toast } from "sonner"
 
 const navigation = [
   { name: "Tổng quan", href: "/", icon: LayoutDashboard },
@@ -70,14 +74,24 @@ const navigation = [
 ]
 
 export default function AdminSidebar() {
+  const router = useRouter()
   const pathname = usePathname()
-
+  const dispatch = useDispatch<AppDispatch>()
+  const handleLogout = () => {
+    try {
+      dispatch(fetchLogout())
+      toast.success("Đăng xuất thành công")
+      router.push("/login")
+    } catch (error) {
+      console.error("Đăng xuất thất bại:", error)
+    }
+  }
   return (
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
           <SidebarHeader className="text-2xl font-bold border-b">
-            <Link href="" className="block px-4 py-3">
+            <Link href="/" className="block px-4 py-3">
               Admin Panel
             </Link>
           </SidebarHeader>
@@ -102,6 +116,7 @@ export default function AdminSidebar() {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <button
+                            type="button"
                             className={cn(
                               "flex w-full items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                               isActive
@@ -175,11 +190,9 @@ export default function AdminSidebar() {
                 <p className="text-xs text-muted-foreground">admin@snackviet.vn</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="w-full justify-start bg-transparent" asChild>
-              <Link href="/">
-                <LogOut className="h-4 w-4 mr-2" />
-                Đăng xuất
-              </Link>
+            <Button onClick={handleLogout} type="button" variant="outline" size="sm" className="w-full cursor-pointer justify-start bg-transparent">
+              <LogOut className="h-4 w-4 mr-2" />
+              Đăng xuất
             </Button>
           </div>
         </SidebarGroup>

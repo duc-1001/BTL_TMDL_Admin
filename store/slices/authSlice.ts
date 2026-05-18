@@ -84,6 +84,7 @@ export const fetchLogout = createAsyncThunk(
                     query.queryKey.includes('cart-pricing'),
             })
             localStorage.setItem('merge-cart-handled', 'false')
+            
             return true
         } catch (err) {
             return rejectWithValue(err)
