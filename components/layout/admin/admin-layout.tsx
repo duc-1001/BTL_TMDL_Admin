@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect } from 'react'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import AdminSidebar from './admin-sidebar'
