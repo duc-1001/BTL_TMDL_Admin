@@ -25,6 +25,7 @@ export function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get("access_token")?.value;
+  console.log("Middleware check auth for path:", token);
 
   // ================================
   // LOGIN PAGE
@@ -35,7 +36,8 @@ export function middleware(request: NextRequest) {
     if (token) {
       try {
         const payload = jwtDecode<JwtPayload>(token);
-
+        console.log(payload);
+        
         // token còn hạn + đúng role
         if (
           payload.exp * 1000 > Date.now() &&
@@ -61,6 +63,7 @@ export function middleware(request: NextRequest) {
 
   try {
     const payload = jwtDecode<JwtPayload>(token);
+    console.log("Decoded JWT payload:", payload);
 
     // Token hết hạn
     if (payload.exp * 1000 < Date.now()) {
