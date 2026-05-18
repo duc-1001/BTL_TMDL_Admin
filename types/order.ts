@@ -1,8 +1,23 @@
-import { InforUserCheckout } from "@/app/(user-layout)/checkout/page"
 import { GuestCartItem } from "./cart"
 import { AppliedDiscount } from "./discount"
 
 /* ================= USER SIDE ================= */
+
+type InforUserCheckout = {
+    fullName: string;
+    phone: string;
+    email: string;
+    address: string;
+    province: {
+        code: string;
+        name: string;
+    };
+    ward: {
+        code: string;
+        name: string;
+    };
+    note?: string | undefined;
+}
 
 export interface OrderPayload {
   items: GuestCartItem[]
