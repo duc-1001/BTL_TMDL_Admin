@@ -36,8 +36,8 @@ import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { useDispatch } from "react-redux"
-import { AppDispatch } from "@/store/store"
+import { useDispatch, useSelector } from "react-redux"
+import { AppDispatch, RootState } from "@/store/store"
 import { fetchLogout } from "@/store/slices/authSlice"
 import { toast } from "sonner"
 
@@ -77,6 +77,7 @@ export default function AdminSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const dispatch = useDispatch<AppDispatch>()
+  const { user } = useSelector((state: RootState) => state.auth)
   const handleLogout = () => {
     try {
       dispatch(fetchLogout())
@@ -183,11 +184,11 @@ export default function AdminSidebar() {
           <div className="p-4 border-t">
             <div className="flex items-center gap-3 mb-3 px-3 py-2">
               <div className="w-8 h-8 rounded-full bg-orange-600/10 flex items-center justify-center font-semibold text-sm">
-                AD
+                {user?.fullName?.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-muted-foreground">admin@snackviet.vn</p>
+                <p className="text-sm font-medium">{user?.fullName}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
             </div>
             <Button onClick={handleLogout} type="button" variant="outline" size="sm" className="w-full cursor-pointer justify-start bg-transparent">

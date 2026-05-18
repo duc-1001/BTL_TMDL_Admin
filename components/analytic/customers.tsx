@@ -55,25 +55,11 @@ const Customers = ({ day, tab }: CustomerReportProps) => {
         enabled: tab === "customers",
     })
 
-    const { data: topCustomers = [] } = useQuery({
-        queryKey: ["top-customers", day],
-        queryFn: () => getTopCustomers(5),
-        enabled: tab === "customers",
-    })
-
-    const { data: customerSegments = [] } = useQuery({
-        queryKey: ["customer-segments"],
-        queryFn: () => getCustomerSegmentation(),
-        enabled: tab === "customers",
-    })
-
     const { data: churnCustomers = [] } = useQuery({
         queryKey: ["churn-customers"],
         queryFn: () => getChurnCustomers(5),
         enabled: tab === "customers",
     })
-
-    const medals = ["🥇", "🥈", "🥉"]
 
     return (
         <div className="space-y-8">
@@ -164,107 +150,6 @@ const Customers = ({ day, tab }: CustomerReportProps) => {
                     </ResponsiveContainer>
                 </CardContent>
             </Card>
-
-            {/* ================= TOP + SEGMENTS ================= */}
-            <div className="grid gap-6 lg:grid-cols-2">
-
-                {/* TOP CUSTOMERS */}
-                <Card className="shadow-sm border">
-                    <CardHeader>
-                        <CardTitle className="text-lg">
-                            Top khách hàng
-                        </CardTitle>
-                        <CardDescription>
-                            Chi tiêu cao nhất
-                        </CardDescription>
-                    </CardHeader>
-
-                    <CardContent className="space-y-4">
-
-                        {topCustomers.map((cust, idx) => (
-
-                            <Link
-                                key={cust._id}
-                                href={`/customers/${cust._id}`}
-                                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition"
-                            >
-
-                                <div className="flex items-center gap-3">
-
-                                    <span className="text-lg">
-                                        {medals[idx] || `${idx + 1}.`}
-                                    </span>
-
-                                    <div>
-                                        <p className="font-medium">
-                                            {cust.fullName}
-                                        </p>
-
-                                        <p className="text-sm text-muted-foreground">
-                                            {cust.phone}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="text-right">
-
-                                    <p className="font-semibold">
-                                        {formatPrice(cust.spent)}
-                                    </p>
-
-                                    <p className="text-xs text-muted-foreground">
-                                        {cust.orders} đơn
-                                    </p>
-
-                                </div>
-                            </Link>
-
-                        ))}
-
-                    </CardContent>
-                </Card>
-
-                {/* CUSTOMER SEGMENTS */}
-                <Card className="shadow-sm border">
-                    <CardHeader>
-                        <CardTitle className="text-lg">
-                            Phân khúc khách hàng
-                        </CardTitle>
-                    </CardHeader>
-
-                    <CardContent className="space-y-5">
-
-                        {customerSegments.map((seg) => (
-
-                            <div key={seg.segment}>
-
-                                <div className="flex justify-between text-sm mb-2">
-                                    <span className="font-medium">
-                                        {seg.segment}
-                                    </span>
-
-                                    <span className="text-muted-foreground">
-                                        {seg.count} khách
-                                    </span>
-                                </div>
-
-                                <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-
-                                    <div
-                                        className="h-full bg-orange-500 rounded-full transition-all"
-                                        style={{ width: `${seg.percent}%` }}
-                                    />
-
-                                </div>
-
-                            </div>
-
-                        ))}
-
-                    </CardContent>
-                </Card>
-
-            </div>
 
             {/* ================= CHURN CUSTOMERS ================= */}
             <Card className="shadow-sm border">

@@ -118,11 +118,6 @@ export default function ReportsPage() {
 
           </Select>
 
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Xuất Excel/PDF
-          </Button>
-
         </div>
 
       </div>
