@@ -37,18 +37,12 @@ const CreateNewHero = ({ setOpenDialog }: CreateNewHeroProps) => {
             buttonText: '',
             buttonLink: '',
             backgroundImage: '',
-            order: 1,
-            isActive: true,
-            endAt: undefined,
-            startAt: undefined,
         }
     })
     const onSubmit = async (data: HeroBanner) => {
         try {
             const payload: CreateNewBanner = {
                 ...data,
-                startAt: data.startAt ? new Date(data.startAt).toISOString() : undefined,
-                endAt: data.endAt ? new Date(data.endAt).toISOString() : undefined,
             }
             const res = await createBanner(payload);
             if (res.success === true) {
@@ -203,66 +197,6 @@ const CreateNewHero = ({ setOpenDialog }: CreateNewHeroProps) => {
                             {errors.backgroundImage.message}
                         </p>
                     )}
-                </div>
-
-                {/* ===== DISPLAY SETTINGS ===== */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label className='mb-1'>Thứ tự hiển thị</Label>
-                        <Input
-                            type="number"
-                            min={1}
-                            {...register("order", { valueAsNumber: true })}
-                        />
-                        {errors.order && (
-                            <p className="text-xs text-red-600 mt-1 font-medium">
-                                {errors.order.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="flex items-end gap-2">
-                        <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            {...register("isActive")}
-                        />
-                        <Label className="cursor-pointer">Hiển thị banner</Label>
-                    </div>
-                </div>
-
-                {/* ===== SCHEDULE ===== */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label className='mb-1'>Bắt đầu</Label>
-                        <Input type="datetime-local"
-                            value={formatDateTimeLocal(watch("startAt"))}
-                            onChange={(e) => {
-                                const date = e.target.value
-                                setValue("startAt", date ? new Date(date) : undefined)
-                            }}
-                        />
-                        {errors.startAt && (
-                            <p className="text-xs text-red-600 mt-1 font-medium">
-                                {errors.startAt.message}
-                            </p>
-                        )}
-                    </div>
-                    <div>
-                        <Label className='mb-1'>Kết thúc</Label>
-                        <Input type="datetime-local"
-                            value={formatDateTimeLocal(watch("endAt"))}
-                            onChange={(e) => {
-                                const date = e.target.value
-                                setValue("endAt", date ? new Date(date) : undefined)
-                            }}
-                        />
-                        {errors.endAt && (
-                            <p className="text-xs text-red-600 mt-1 font-medium">
-                                {errors.endAt.message}
-                            </p>
-                        )}
-                    </div>
                 </div>
 
                 {/* ===== ACTIONS ===== */}
