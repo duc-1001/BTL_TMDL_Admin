@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from "jwt-decode";
 
 interface JwtPayload {
   user_id: string;
@@ -36,6 +36,9 @@ export function middleware(request: NextRequest) {
     if (payload.exp * 1000 < Date.now()) {
       return redirectToLogin(request);
     }
+
+    console.log(payload);
+    
 
     // 4. Kiểm tra quyền Admin
     // Vì đây là App Admin, nếu không phải admin thì không cho xem gì cả
