@@ -144,9 +144,10 @@ export default function OrdersPage() {
     }
 
     const q = useDebounce(searchQuery, 500)
+    const ordersQueryKey = ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage, itemsPerPage]
 
     const { data: ordersData, isLoading } = useQuery({
-        queryKey: ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+        queryKey: ordersQueryKey,
         queryFn: () => getOrdersAdmin(currentPage, itemsPerPage, q, statusFilter, paymentStatusFilter, sortBy),
     })
 
@@ -216,7 +217,7 @@ export default function OrdersPage() {
             // ✅ Update cache bằng dữ liệu trả về từ backend
             if (success && success.length > 0) {
                 queryClient.setQueryData(
-                    ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+                    ordersQueryKey,
                     (oldData: any) => {
                         if (!oldData) return oldData
 
@@ -272,7 +273,7 @@ export default function OrdersPage() {
             if (!updatedOrder) return
 
             queryClient.setQueryData(
-                ["orders", q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+                ordersQueryKey,
                 (oldData: any) => {
                     if (!oldData) return oldData
 
@@ -306,7 +307,7 @@ export default function OrdersPage() {
     }
 
     const optimisticallyMarkOrderAsPaid = (orderCode: string) => {
-        queryClient.setQueryData(['orders', q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+        queryClient.setQueryData(ordersQueryKey,
             (oldData: PaginatedData<AdminOrderListItem>) => {
                 if (!oldData?.data) return oldData
 
@@ -323,7 +324,7 @@ export default function OrdersPage() {
 
     const optimisticallyRevertOrderToUnpaid = (orderCode: string) => {
         queryClient.setQueryData(
-            ['orders', q, statusFilter, paymentStatusFilter, sortBy, currentPage],
+            ordersQueryKey,
             (oldData: PaginatedData<AdminOrderListItem>) => {
                 if (!oldData) return oldData
 
