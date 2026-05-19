@@ -20,9 +20,18 @@ export const editProduct = async (id: string, data: any) => {
     return response;
 }
 
-export const getAllProductsAdmin = async (page: number, limit: number, q?: string) => {
-    const params = { page, limit, q }
-    const response = await ApiClient.get<PaginatedData<ProductAdmin>>('/products/admin', params);
+export const getAllProductsAdmin = async (
+    page: number,
+    limit: number,
+    q?: string,
+    sort?: string,
+    isActive?: boolean
+) => {
+    const params: Record<string, any> = { page, limit }
+    if (q)               params.q        = q
+    if (sort)            params.sort     = sort
+    if (isActive !== undefined) params.isActive = isActive
+    const response = await ApiClient.get<PaginatedData<ProductAdmin>>('/products/admin', params)
     return response
 }
 

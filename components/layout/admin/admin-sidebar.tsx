@@ -31,6 +31,7 @@ import {
   Landmark,
   MessageSquare,
   MessagesSquare,
+  Home,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { usePathname, useRouter } from "next/navigation"
@@ -43,6 +44,7 @@ import { toast } from "sonner"
 
 const navigation = [
   { name: "Tổng quan", href: "/", icon: LayoutDashboard },
+  { name: "Trang chủ", href: "/homepage", icon: Home },
 
   { name: "Sản phẩm", href: "/products", icon: Package },
   { name: "Danh mục", href: "/categories", icon: FolderTree },
