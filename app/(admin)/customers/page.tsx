@@ -113,7 +113,11 @@ export default function CustomersPage() {
         class: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 border-gray-200"
       }
     }
-    const { label, class: className } = config[status]
+    const fallback = {
+      label: "Không xác định",
+      class: "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 border-gray-200"
+    }
+    const { label, class: className } = config[status] ?? fallback
     return (
       <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${className}`}>
         {label}
