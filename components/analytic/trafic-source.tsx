@@ -5,14 +5,6 @@ import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recha
 import { useQuery } from "@tanstack/react-query"
 import { getTrafficSources } from "@/services/analytics.service"
 
-const SOURCE_META: Record<string, { name: string; color: string }> = {
-    organic: { name: "Tìm kiếm tự nhiên", color: "#f97316" },
-    ads: { name: "Quảng cáo", color: "#10b981" },
-    direct: { name: "Trực tiếp", color: "#3b82f6" },
-    social: { name: "Mạng xã hội", color: "#ec4899" },
-    other: { name: "Khác", color: "#6b7280" },
-}
-
 interface TrafficSourceProps {
     day: number
     tab: string
@@ -25,23 +17,32 @@ const TrafficSource = ({ day, tab }: TrafficSourceProps) => {
         enabled: tab === "overview",
     })
 
+    // API trả về sẵn: { name, label, color, value, percent }
     const chartData =
         data?.map((item: any) => ({
-            name: SOURCE_META[item.name]?.name || item.name,
+            name: item.label || item.name,   // label hiển thị đẹp (VD: "Facebook")
             value: item.value,
-            color: SOURCE_META[item.name]?.color || "#9ca3af",
+            color: item.color || "#9ca3af",
+            percent: item.percent,
         })) || []
+
+    const total = chartData.reduce((sum: number, d: any) => sum + d.value, 0)
 
     return (
         <Card className="border-none shadow-sm">
             <CardHeader className="pb-2">
                 <CardTitle>Nguồn traffic</CardTitle>
-                <CardDescription>Phân bổ lượt truy cập</CardDescription>
+                <CardDescription>
+                    Phân bổ lượt truy cập theo kênh •{" "}
+                    <span className="font-medium text-foreground">{total.toLocaleString()} lượt</span>
+                </CardDescription>
             </CardHeader>
 
             <CardContent className="h-[340px] flex items-center justify-center">
                 {isLoading ? (
                     <p className="text-sm text-gray-500">Đang tải dữ liệu...</p>
+                ) : chartData.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Chưa có dữ liệu trong khoảng thời gian này</p>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
@@ -56,11 +57,15 @@ const TrafficSource = ({ day, tab }: TrafficSourceProps) => {
                                     `${name} (${((percent ?? 0) * 100).toFixed(0)}%)`
                                 }
                             >
-                                {chartData.map((entry, index) => (
+                                {chartData.map((entry: any, index: number) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
                             </Pie>
-                            <Tooltip formatter={(value) => `${value} lượt`} />
+                            <Tooltip
+                                formatter={(value: any, name: any, props: any) =>
+                                    [`${value} lượt (${props.payload.percent}%)`, name]
+                                }
+                            />
                             <Legend />
                         </PieChart>
                     </ResponsiveContainer>
@@ -71,3 +76,4 @@ const TrafficSource = ({ day, tab }: TrafficSourceProps) => {
 }
 
 export default TrafficSource
+
